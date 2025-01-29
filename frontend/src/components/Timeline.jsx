@@ -195,7 +195,7 @@ function Timeline({
         });
 
         // After adding the keyframe, move the current frame forward by 20
-        const nextFrame = Math.min(currentFrame + 20, 195);
+        const nextFrame = Math.min(currentFrame + 2, 195);
         onFrameChange(nextFrame);
     };
 

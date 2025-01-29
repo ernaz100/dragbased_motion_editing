@@ -77,13 +77,16 @@ const SMPLStatic = React.forwardRef(({ modelUrl, onJointSelect, selectedJoint, o
             ref.current = {
                 scene,
                 joints: foundJoints,
-                resetJoints: () => {
-                    // Restore each bone's initial position and rotation
-                    foundJoints.forEach((joint, index) => {
-                        joint.bone.position.copy(initialTransformsData[index].position);
-                        joint.bone.quaternion.copy(initialTransformsData[index].quaternion);
-                        joint.bone.rotation.copy(initialTransformsData[index].rotation);
-                        joint.bone.updateMatrix();
+                resetJoints: (jointIndices = []) => {
+                    // Restore each specified bone's initial position and rotation
+                    jointIndices.forEach((index) => {
+                        const joint = foundJoints[index];
+                        if (joint) {
+                            joint.bone.position.copy(initialTransformsData[index].position);
+                            joint.bone.quaternion.copy(initialTransformsData[index].quaternion);
+                            joint.bone.rotation.copy(initialTransformsData[index].rotation);
+                            joint.bone.updateMatrix();
+                        }
                     });
 
                     // Update the scene and skeleton

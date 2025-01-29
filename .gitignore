@@ -18,3 +18,5 @@ data/
 *.pkl
 *.tar
 *.pt
+*.png
+*.glb

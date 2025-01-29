@@ -65,13 +65,16 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
 
             // First reset the joints to their initial pose
             if (smplRef.current && smplRef.current.resetJoints) {
-                console.log('Resetting joints...');
-                smplRef.current.resetJoints();
+                console.log('Resetting specific joints...');
+                const jointIndicesToReset = [selectedJoint - 2, selectedJoint - 1, selectedJoint, selectedJoint + 1, selectedJoint + 2]
+                    .filter(index => index >= 0 && index < smplRef.current.joints.length && ![0, 1].includes(index));
+
+                smplRef.current.resetJoints(jointIndicesToReset);
 
                 console.log('Applying new rotations...');
                 // Then apply the new rotations
                 smplRef.current.joints.forEach((joint, index) => {
-                    if (index === 0 || index === 1) return; // Skip root joint
+                    if (![selectedJoint - 2, selectedJoint - 1, selectedJoint, selectedJoint + 1, selectedJoint + 2].includes(index) || [0, 1].includes(index)) return; // Skip root and first few joints
                     if (index < 25) { // SMPL has 24 joints (excluding root)
                         const baseIdx = (index - 1) * 3;
                         const axisAngleRotation = new THREE.Vector3(
@@ -93,7 +96,6 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
                                     new THREE.Euler(-Math.PI / 2, 0, 0)
                                 );
                                 quaternion.multiply(pelvisCorrection);
-
                             }
 
                             // Apply the rotation
