@@ -64,7 +64,7 @@ def load_and_transform_motion(motion, mean, std):
     return motion, m_length
 
 
-def generate_inbetween_motion(motion, keyframeIndices):
+def generate_inbetween_motion(motion, keyframeIndices,first_keyframe_index = None, motion_editing = False):
     out_path = "./keyframe_gen"
     max_frames = 196
     use_test_set_prompts = False
@@ -110,7 +110,12 @@ def generate_inbetween_motion(motion, keyframeIndices):
     obs_mask = torch.zeros((batch_size, n_joints, n_feats, n_frames), dtype=torch.bool, device=input_motions.device)
     # Set all joints to True for each keyframe
     for frame_idx in keyframeIndices:
-        obs_mask[...,:67, frame_idx] = True
+        if motion_editing and first_keyframe_index is not None:
+            # Mask frames within ±20 of the first keyframe index, excluding the first keyframe index
+            if frame_idx != first_keyframe_index and abs(frame_idx - first_keyframe_index) <= 20:
+                obs_mask[...,:67, frame_idx] = True
+        else:
+            obs_mask[...,:67, frame_idx] = True
     obs_joint_mask = obs_mask.clone()
    
     input_motions = input_motions.to(dist_util.dev()) # [nsamples, njoints=263, nfeats=1, nframes=196]
