@@ -1,5 +1,8 @@
 import sys
 import os
+
+from backend.human3dml_util.mini_prior_mdm import mini_prior_mdm
+from backend.human3dml_util.prepare_smpl_for_priormdm import prepare_smpl_for_priorMDM
 from diffusion_motion_inbetweening import generate_inbetween_motion
 
 from sequence_network import MotionSequenceNetwork
@@ -262,78 +265,30 @@ def handle_generate_from_keyframes():
         logger.error(f"Error during generation from keyframes: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
-@app.route('/estimate_sequence', methods=['POST'])
+
+@app.route('/estimate_sequence', methods = ['POST'])
 def handle_sequence_estimation():
     try:
-        data = request.get_json()
+        # We log that this process is starting
         logger.info("Received sequence estimation request")
-        
-        if 'joint_positions' not in data or "history_positions" not in data:
-            logger.error("No joint positions / history positions provided in request")
-            return jsonify({'error': 'No joint positions provided'}), 400
-        sequence_data = data['history_positions']        
-        # Initialize sequence positions with zeros
-        sequence_positions = np.zeros((30, 24, 3))
-        
-        # Get the last 30 entries if more exist, otherwise use all available entries
-        sequence_data = sequence_data[-30:] if len(sequence_data) > 30 else sequence_data
-        
-        # Fill the sequence positions from the end, leaving zeros at the start if less than 30 entries
-        start_idx = 30 - len(sequence_data)
-        for i, frame in enumerate(sequence_data):
-            # First, get the root joint position for this frame
-            root_joint = np.array([frame[0]['x'], frame[0]['y'], frame[0]['z']])
-            
-            for j, joint in enumerate(frame):
-                # Subtract root joint position to normalize
-                sequence_positions[start_idx + i, j, 0] = joint['x'] - root_joint[0]
-                sequence_positions[start_idx + i, j, 1] = joint['y'] - root_joint[1]
-                sequence_positions[start_idx + i, j, 2] = joint['z'] - root_joint[2]
-        
-        # Validate input shape
-        if sequence_positions.shape != (30, 24, 3):
-            logger.error(f"Invalid sequence positions shape: {sequence_positions.shape}")
-            return jsonify({'error': 'Invalid sequence positions format. Expected shape: (30, 24, 3)'}), 400
-        
-        joint_positions = np.array(data['joint_positions'])
-        # Normalize joint positions relative to root joint (pelvis)
-        root_joint = joint_positions[0]  # Get pelvis position
-        joint_positions = joint_positions - root_joint  
 
-        logger.info(f"Received joint positions with shape: {joint_positions.shape}")
-        
-        # Remap joints to SMPL order 
-        remapped_joints = remap_joints(joint_positions)
-        remapped_sequences = np.array([remap_joints(x) for x in sequence_positions])
-        # Transform joints to match SMPL coordinate system 
-        transformed_joints = transform_input_joints(remapped_joints)
-        transformed_sequences = np.array([transform_input_joints(x) for x in remapped_sequences])
+        # let's take the joints from the animation into a ndarray
+        sequence_joints = np.array(request.get_json()["jointPositions"]["allPositions"])[:,1:]  # (sequence_length, 24, 3)
 
-        # Prepare input for pose network
-        joints_tensor = torch.tensor(transformed_joints, dtype=torch.float32).unsqueeze(0)  # Add batch dim
-        joints_tensor = joints_tensor.to(device)
-        sequence_tensor = torch.tensor(transformed_sequences, dtype=torch.float32).unsqueeze(0)  # Add batch dim
-        sequence_tensor = sequence_tensor.to(device)
+        # since mdm uses a different input, we have to convert the joints into their format
+        to_human3dml_tensor = prepare_smpl_for_priorMDM(sequence_joints)
 
-        # Get pose parameters from network
-        with torch.no_grad():
-            pose_params = sequence_network(input_sequence = sequence_tensor, target_position = joints_tensor, output_sequence_length = 30)
-            pose_params = pose_params.cpu().numpy().squeeze()  # Remove batch dim
+        # We impaint the sequence again using priormdm
+        sequence_predicted_joints = mini_prior_mdm(to_human3dml_tensor)
 
-        
-        frontend_pose_params = [remap_pose_params_back(x).tolist() for x in pose_params]
+        return jsonify({
+            'status': 'success',
+            'generated_motion': sequence_predicted_joints.tolist() if sequence_predicted_joints is not None else None
+        })
 
-        result = {
-            'pose_params': frontend_pose_params,
-            'status': 'success'
-        }
-        
-        return jsonify(result)
-        
     except Exception as e:
-        logger.error(f"Error during pose estimation: {str(e)}", exc_info=True)
+        logger.error(f"Error during sequence estimation: {str(e)}", exc_info = True)
         return jsonify({'error': str(e)}), 500
-
 
 def visualize_joint_comparison(input_joints, predicted_joints, selected_joint=None, title="joint_comparison.png"):
     """Visualize input and predicted joint positions in the same plot"""
@@ -378,7 +333,7 @@ def visualize_joint_comparison(input_joints, predicted_joints, selected_joint=No
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
-        ax.set_box_aspect([1,1,1])
+        # ax.set_box_aspect([1,1,1])
         ax.legend()
     
     plt.tight_layout()
@@ -460,7 +415,7 @@ def visualize_debug_joints(joints, title, save_path):
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
-        ax.set_box_aspect([1,1,1])
+        # ax.set_box_aspect([1,1,1])
         
     plt.tight_layout()
     plt.savefig(save_path)

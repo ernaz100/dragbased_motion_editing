@@ -50,7 +50,8 @@ function Timeline({
                     keyframes: keyframes.map(kf => ({
                         frame: kf.frame,
                         motionData: kf.motionData,
-                    }))
+                    })),
+                    jointPositions: jointPositions
                 })
             });
 

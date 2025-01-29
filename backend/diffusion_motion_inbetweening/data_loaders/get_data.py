@@ -1,13 +1,13 @@
 from torch.utils.data import DataLoader
 from .tensors import collate as all_collate, t2m_collate, amass_collate
-from .humanml.data.dataset import Text2MotionDatasetV2, HumanML3D, TextOnlyDataset
+from backend.diffusion_motion_inbetweening.data_loaders.humanml.data.dataset import Text2MotionDatasetV2, HumanML3D, TextOnlyDataset
 from typing import Tuple, List, Optional
 from dataclasses import dataclass
 
 
 def get_dataset_class(name):
     if name == "amass":
-        from data_loaders.amass.data.dataset import AMASS
+        from amass.data.dataset import AMASS
         return AMASS
     elif name == "uestc":
         from .a2m.uestc import UESTC
@@ -18,7 +18,7 @@ def get_dataset_class(name):
     elif name == "humanml":
         return HumanML3D
     elif name == "kit":
-        from data_loaders.humanml.data.dataset import KIT
+        from backend.diffusion_motion_inbetweening.data_loaders.humanml.data.dataset import KIT
         return KIT
     else:
         raise ValueError(f'Unsupported dataset name [{name}]')
@@ -26,7 +26,7 @@ def get_dataset_class(name):
 
 def get_collate_fn(name, hml_mode='train'):
     if hml_mode == 'gt':
-        from data_loaders.humanml.data.dataset import collate_fn as t2m_eval_collate
+        from backend.diffusion_motion_inbetweening.data_loaders.humanml.data.dataset import collate_fn as t2m_eval_collate
         return t2m_eval_collate
     if name in ["humanml", "kit"]:
         return t2m_collate

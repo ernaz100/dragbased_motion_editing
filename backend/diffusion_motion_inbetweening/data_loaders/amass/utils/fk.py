@@ -8,7 +8,7 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from data_loaders.amass.utils.rotations import euler_angles_to_matrix, quaternion_to_matrix, rotation_6d_to_matrix
+from backend.diffusion_motion_inbetweening.data_loaders.amass.utils.rotations import euler_angles_to_matrix, quaternion_to_matrix, rotation_6d_to_matrix
 import yaml
 
 class ForwardKinematicsLayer(nn.Module):

@@ -207,7 +207,7 @@ class PoseEstimator:
             ax.set_xlabel('X')
             ax.set_ylabel('Y')
             ax.set_zlabel('Z')
-            ax.set_box_aspect([1,1,1])
+            # ax.set_box_aspect([1,1,1])    # df: using "matplotlib==3.1.3" (the version that priorMDM explicitly needs), this does not work
         
         # Save the figure
         plt.tight_layout()
@@ -254,7 +254,7 @@ class PoseEstimator:
             ax.set_xlabel('X')
             ax.set_ylabel('Y')
             ax.set_zlabel('Z')
-            ax.set_box_aspect([1,1,1])
+            # ax.set_box_aspect([1,1,1])
         
         # Save the figure
         plt.tight_layout()
@@ -374,6 +374,26 @@ class PoseEstimator:
         # put the SMPL joint at frontend position
         for frontend_idx, smpl_idx in self.joint_mapping.items():
             frontend_joints[frontend_idx] = joints[smpl_idx]
+        return frontend_joints
+
+    def remap_joints_sequence_to_frontend(self, joint_sequence):
+        """
+        Remap joints from SMPL ordering back to frontend ordering
+
+        Args:
+            joints: numpy array of shape (sequence_length, 24, 3) in SMPL order
+
+        Returns:
+            frontend_joints: numpy array of shape (sequence_length, 24, 3) in frontend order
+        """
+        if joint_sequence.shape[-2:] != (24, 3):
+            raise ValueError(f"Expected joints shape (24, 3), got {joint_sequence.shape}")
+
+        frontend_joints = np.zeros_like(joint_sequence)
+        # Reverse the mapping: for each frontend_idx, smpl_idx pair,
+        # put the SMPL joint at frontend position
+        for frontend_idx, smpl_idx in self.joint_mapping.items():
+            frontend_joints[:, frontend_idx] = joint_sequence[:, smpl_idx]
         return frontend_joints
 
     def get_kinematic_chain(self, joint_idx):

@@ -1,13 +1,23 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import React, {useRef, useState, useEffect} from 'react';
+import {Canvas} from '@react-three/fiber';
+import {OrbitControls} from '@react-three/drei';
 import * as THREE from 'three';
 import SMPLAnimated from './SMPLAnimated';
 import BackButton from './BackButton';
+import SMPLStatic from "./SMPLStatic";
 
 export const BACKEND_URL = 'http://localhost:5001';
 
-function EditingViewer({ currentTime, onAnimationLoaded, onUpdatePoseRef, setCurrentJointPositionCallback, setAllPositions, sequencePositions, isPlaying, onBack }) {
+function EditingViewer({
+                           currentTime,
+                           onAnimationLoaded,
+                           onUpdatePoseRef,
+                           setCurrentJointPositionCallback,
+                           setAllPositions,
+                           sequencePositions,
+                           isPlaying,
+                           onBack
+                       }) {
     const [selectedJoint, setSelectedJoint] = useState(null);
     const [currentJointPositions, setCurrentJointPositions] = useState(null);
     const [modelUrl, setModelUrl] = useState('/human.glb');
@@ -23,8 +33,8 @@ function EditingViewer({ currentTime, onAnimationLoaded, onUpdatePoseRef, setCur
         onUpdateAnimation(positions);
     }
 
-    const handleJointPositionsUpdate = ({ positions, rotations }) => {
-        setCurrentJointPositionCallback({ positions, rotations }); //absolute positions
+    const handleJointPositionsUpdate = ({positions, rotations}) => {
+        setCurrentJointPositionCallback({positions, rotations}); //absolute positions
         const pelvisPos = positions[1];  // Get pelvis position
         setPelvisOffset(pelvisPos); // Store the pelvis offset for later use
         const relativePositions = positions.slice(1).map(pos => [
@@ -55,7 +65,7 @@ function EditingViewer({ currentTime, onAnimationLoaded, onUpdatePoseRef, setCur
             console.log('EditingViewer: Sending positions:', currentJointPositions);
             const response = await fetch(`${BACKEND_URL}/estimate_pose`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     joint_positions: currentJointPositions,
                     selected_joint: selectedJoint - 1,
@@ -69,7 +79,7 @@ function EditingViewer({ currentTime, onAnimationLoaded, onUpdatePoseRef, setCur
             const data = await response.json();
             console.log('Received response:', data);
 
-            const { pose_params } = data;
+            const {pose_params} = data;
 
             // Update the joint positions in the scene
             if (smplRef.current && smplRef.current.joints && smplRef.current.resetJoints) {
@@ -132,27 +142,31 @@ function EditingViewer({ currentTime, onAnimationLoaded, onUpdatePoseRef, setCur
     }, [onUpdatePoseRef, currentJointPositions]);
 
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <BackButton onClick={onBack} />
+        <div style={{position: 'relative', width: '100%', height: '100%'}}>
+            <BackButton onClick={onBack}/>
             <Canvas
-                camera={{ position: [0, 1, 3], fov: 60 }}
-                style={{ background: '#1a1a1a' }}
+                camera={{position: [0, 1, 3], fov: 60}}
+                style={{background: '#1a1a1a'}}
             >
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} />
-                <SMPLAnimated
-                    ref={smplRef}
-                    modelUrl={modelUrl}
-                    onJointSelect={handleJointSelect}
-                    animationTime={currentTime}
-                    selectedJoint={selectedJoint}
-                    onAnimationLoaded={onAnimationLoaded}
-                    onJointPositionsUpdate={handleJointPositionsUpdate}
-                    onUpdateAnimation={handleUpdateAnimation}
-                    isPlaying={isPlaying}
-                    mode="editing"
-                    setAllPositions={setAllPositions}
-                />
+                <ambientLight intensity={0.5}/>
+                <pointLight position={[10, 10, 10]}/>
+                {sequencePositions && sequencePositions.length > 0 ? (
+                    <AnimatedJoints positions={sequencePositions[currentFrame] || sequencePositions[0]}/>
+                ) : (
+                    <SMPLAnimated
+                        ref={smplRef}
+                        modelUrl={modelUrl}
+                        onJointSelect={handleJointSelect}
+                        animationTime={currentTime}
+                        selectedJoint={selectedJoint}
+                        onAnimationLoaded={onAnimationLoaded}
+                        onJointPositionsUpdate={handleJointPositionsUpdate}
+                        onUpdateAnimation={handleUpdateAnimation}
+                        isPlaying={isPlaying}
+                        mode="editing"
+                        setAllPositions={setAllPositions}
+                    />
+                )}
                 <OrbitControls
                     makeDefault
                     enabled={selectedJoint === null}

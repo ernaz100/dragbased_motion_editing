@@ -1,10 +1,10 @@
 import os
-from data_loaders.amass.utils.fk import ForwardKinematicsLayer
-from data_loaders.amass.utils.rotations import axis_angle_to_matrix, matrix_to_axis_angle, matrix_to_quaternion, matrix_to_rotation_6d, quaternion_to_matrix, rotation_6d_to_matrix
+from backend.diffusion_motion_inbetweening.data_loaders.amass.utils.fk import ForwardKinematicsLayer
+from backend.diffusion_motion_inbetweening.data_loaders.amass.utils.rotations import axis_angle_to_matrix, matrix_to_axis_angle, matrix_to_quaternion, matrix_to_rotation_6d, quaternion_to_matrix, rotation_6d_to_matrix
 
-from data_loaders.humanml.common.quaternion import *
+from backend.diffusion_motion_inbetweening.data_loaders.humanml.common.quaternion import *
 from human_body_prior.tools.omni_tools import copy2cpu as c2c
-from data_loaders.amass.utils.helper_functions import estimate_angular_velocity, estimate_linear_velocity
+from backend.diffusion_motion_inbetweening.data_loaders.amass.utils.helper_functions import estimate_angular_velocity, estimate_linear_velocity
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
