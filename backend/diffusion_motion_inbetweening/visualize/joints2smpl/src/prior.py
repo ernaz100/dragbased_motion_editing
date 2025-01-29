@@ -117,7 +117,7 @@ class MaxMixturePrior(nn.Module):
         self.use_merged = use_merged
         gmm_fn = 'gmm_{:02d}.pkl'.format(num_gaussians)
 
-        full_gmm_fn = "/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/visualize/joints2smpl/smpl_models/gmm_08.pkl"
+        full_gmm_fn = "./diffusion_motion_inbetweening/visualize/joints2smpl/smpl_models/gmm_08.pkl"
         if not os.path.exists(full_gmm_fn):
             print('The path to the mixture prior "{}"'.format(full_gmm_fn) +
                   ' does not exist, exiting!')

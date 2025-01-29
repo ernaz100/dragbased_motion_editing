@@ -241,9 +241,9 @@ def handle_generate_from_keyframes():
                 velocities[smpl_idx] = orig_velocities[frontend_idx]
             
             # Store remapped data
-            combined_data[frame_idx, 4:67] = positions.reshape(-1)  # 21*3 = 63 values
-            combined_data[frame_idx, 67:193] = rotations.reshape(-1)  # 21*6 = 126 values
-            combined_data[frame_idx, 193:259] = velocities.reshape(-1)  # 22*3 = 66 values
+            combined_data[frame_idx, 4:67] = positions.reshape(-1)  # joint positions: 21*3 = 63 values
+            combined_data[frame_idx, 67:193] = rotations.reshape(-1)  # joint rotations: 21*6 = 126 values
+            combined_data[frame_idx, 193:259] = velocities.reshape(-1)  # joint velocities, including pelvis: 22*3 = 66 values
             
             foot_contact = motion_data['local']['footContact']  # 4 values
             combined_data[frame_idx, 259:263] = foot_contact

@@ -68,17 +68,10 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
                 console.log('Resetting joints...');
                 smplRef.current.resetJoints();
 
-                // Wait for two frames to ensure the reset is complete
-                await new Promise(resolve => {
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(resolve);
-                    });
-                });
-
                 console.log('Applying new rotations...');
                 // Then apply the new rotations
                 smplRef.current.joints.forEach((joint, index) => {
-                    if (index === 0) return; // Skip root joint
+                    if (index === 0 || index === 1) return; // Skip root joint
                     if (index < 25) { // SMPL has 24 joints (excluding root)
                         const baseIdx = (index - 1) * 3;
                         const axisAngleRotation = new THREE.Vector3(
@@ -96,15 +89,11 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
 
                             // For pelvis (index 1), add an additional 90-degree rotation around X
                             if (index === 1) {
-                                joint.bone.position.set(
-                                    pelvisOffset[0],
-                                    pelvisOffset[1],
-                                    pelvisOffset[2]
-                                );
                                 const pelvisCorrection = new THREE.Quaternion().setFromEuler(
                                     new THREE.Euler(-Math.PI / 2, 0, 0)
                                 );
                                 quaternion.multiply(pelvisCorrection);
+
                             }
 
                             // Apply the rotation

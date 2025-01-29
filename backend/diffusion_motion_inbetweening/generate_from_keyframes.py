@@ -65,7 +65,7 @@ def load_and_transform_motion(motion, mean, std):
 
 
 def generate_inbetween_motion(motion, keyframeIndices):
-    out_path = "/Users/ericnazarenus/Desktop/dragbased/backend/keyframe_gen"
+    out_path = "./keyframe_gen"
     max_frames = 196
     use_test_set_prompts = False
     texts = ['']
@@ -84,8 +84,8 @@ def generate_inbetween_motion(motion, keyframeIndices):
     model.eval()  # disable random masking
     ###################################
 
-    mean = np.load("/Users/ericnazarenus/Desktop/dragbased/diffusion-motion-inbetweening/dataset/HumanML3D/Mean_abs_3d.npy")
-    std = np.load("/Users/ericnazarenus/Desktop/dragbased/diffusion-motion-inbetweening/dataset/HumanML3D/Std_abs_3d.npy")
+    mean = np.load("./diffusion_motion_inbetweening/dataset/HumanML3D/Mean_abs_3d.npy")
+    std = np.load("./diffusion_motion_inbetweening/dataset/HumanML3D/Std_abs_3d.npy")
     
     # Load specific motion file instead of using dataloader
     input_motions, input_lengths = load_and_transform_motion(motion, mean, std)
@@ -110,7 +110,7 @@ def generate_inbetween_motion(motion, keyframeIndices):
     obs_mask = torch.zeros((batch_size, n_joints, n_feats, n_frames), dtype=torch.bool, device=input_motions.device)
     # Set all joints to True for each keyframe
     for frame_idx in keyframeIndices:
-        obs_mask[..., frame_idx] = True
+        obs_mask[...,:67, frame_idx] = True
     obs_joint_mask = obs_mask.clone()
    
     input_motions = input_motions.to(dist_util.dev()) # [nsamples, njoints=263, nfeats=1, nframes=196]

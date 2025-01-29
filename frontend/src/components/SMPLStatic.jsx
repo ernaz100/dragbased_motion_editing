@@ -66,6 +66,7 @@ const SMPLStatic = React.forwardRef(({ modelUrl, onJointSelect, selectedJoint, o
                 });
             }
         });
+        console.log("inits", initialTransformsData);
         setJoints(foundJoints);
         setInitialTransforms(initialTransformsData);
         console.log('SMPL Joint Order:', foundJoints.map((joint, index) => `${index}: ${joint.name}`));
@@ -81,6 +82,7 @@ const SMPLStatic = React.forwardRef(({ modelUrl, onJointSelect, selectedJoint, o
                     foundJoints.forEach((joint, index) => {
                         joint.bone.position.copy(initialTransformsData[index].position);
                         joint.bone.quaternion.copy(initialTransformsData[index].quaternion);
+                        joint.bone.rotation.copy(initialTransformsData[index].rotation);
                         joint.bone.updateMatrix();
                     });
 

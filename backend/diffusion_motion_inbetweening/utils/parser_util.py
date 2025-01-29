@@ -581,7 +581,7 @@ def parse_and_load_from_model(parser: HfArgumentParser,
     else:
         model_path = args.model_path
 
-    args_path = "/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/save/condmdi_randomframes/args.json"
+    args_path = "./diffusion_motion_inbetweening/save/condmdi_randomframes/args.json"
     assert os.path.exists(args_path), f'Arguments json file was not found! {args_path}'
     with open(args_path, 'r') as fr:
         model_args = json.load(fr)

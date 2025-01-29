@@ -96,7 +96,7 @@ function Timeline({
     const transformJointsToKeyframeData = (currentPositions, currentFrame, framesPerSecond, prevKeyframe = null) => {
         const rootPosition = currentPositions[1];
 
-        // Filter out joints 0, 24, and 19
+        // Filter out joints 0, 24, and 19 (root and hands)
         const filteredPositions = currentPositions.filter((_, index) =>
             ![0, 24, 19].includes(index)
         );

@@ -21,13 +21,13 @@ class joints2smpl:
         self.num_smplify_iters = 150
         self.fix_foot = False
         print(config.SMPL_MODEL_DIR)
-        smplmodel = smplx.create("/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/body_models/smpl/SMPL_NEUTRAL.pkl",
+        smplmodel = smplx.create("./diffusion_motion_inbetweening/body_models/smpl/SMPL_NEUTRAL.pkl",
                                  model_type="smpl", gender="neutral", ext="pkl",
                                  batch_size=self.batch_size).to(self.device)
 
         # ## --- load the mean pose as original ----
         print(config.SMPL_MEAN_FILE)
-        smpl_mean_file = "/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/visualize/joints2smpl/smpl_models/neutral_smpl_mean_params.h5"
+        smpl_mean_file = "./diffusion_motion_inbetweening/visualize/joints2smpl/smpl_models/neutral_smpl_mean_params.h5"
 
         file = h5py.File(smpl_mean_file, 'r')
         self.init_mean_pose = torch.from_numpy(file['pose'][:]).unsqueeze(0).repeat(self.batch_size, 1).float().to(self.device)

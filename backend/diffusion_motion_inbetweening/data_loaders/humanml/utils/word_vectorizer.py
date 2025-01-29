@@ -45,9 +45,9 @@ VIP_dict = {
 
 class WordVectorizer(object):
     def __init__(self, meta_root, prefix):
-        vectors = np.load("/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/glove/our_vab_data.npy")
-        words = pickle.load(open("/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/glove/our_vab_words.pkl", 'rb'))
-        word2idx = pickle.load(open("/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/glove/our_vab_idx.pkl", 'rb'))
+        vectors = np.load("./diffusion_motion_inbetweening/glove/our_vab_data.npy")
+        words = pickle.load(open("./diffusion_motion_inbetweening/glove/our_vab_words.pkl", 'rb'))
+        word2idx = pickle.load(open("./diffusion_motion_inbetweening/glove/our_vab_idx.pkl", 'rb'))
         self.word2vec = {w: vectors[word2idx[w]] for w in words}
 
     def _get_pos_ohot(self, pos):
