@@ -63,6 +63,7 @@ function App() {
                         sequencePositions={sequencePositions}
                         isPlaying={isPlaying}
                         onBack={handleBack}
+                        currentFrame={currentFrame - 1}
                     />
                 ) : (
                     <SynthesisViewer
