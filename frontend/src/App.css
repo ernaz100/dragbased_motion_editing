@@ -1,0 +1,17 @@
+.app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.viewer-container {
+    flex: 1;
+    background: #1a1a1a;
+}
+
+.timeline-container {
+    height: 100px;
+    background: #2a2a2a;
+    border-top: 1px solid #333;
+}
