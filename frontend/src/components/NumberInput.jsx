@@ -1,4 +1,5 @@
 import React from 'react';
+import "./NumberInput.css"
 
 function NumberInput({value, onChangeFunction}) {
 
@@ -10,10 +11,10 @@ function NumberInput({value, onChangeFunction}) {
   };
 
   return (
-    <div>
-        <span>Number of Diffusion Steps</span>
+    <div className="number-input-container">
+        <div>Number of Diffusion Steps</div>
         <input
-        type="number"
+        type="number" className="number-input-field"
         value={value}
         onChange={handleChange}/>
     </div>
