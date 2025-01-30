@@ -10,6 +10,7 @@ backend/diffusion_motion_inbetweening/glove/
 backend/diffusion_motion_inbetweening/t2m/
 backend/diffusion_motion_inbetweening/body_models/smpl/
 frontend/node_modules
+backend/static/
 data/
 *.pth
 *.npy

@@ -247,7 +247,6 @@ def prepare_smpl_for_priorMDM(smpl_sequence, fps=20):
         np.ndarray: Global joint positions (for visualization/debugging).
     """
     # Define target skeleton parameters (from HumanML3D)
-    smpl_sequence = np.load("human3dml_util/000021.npy", allow_pickle = True)
 
     l_idx1, l_idx2 = 5, 8  # Lower leg indices for scaling
     fid_r, fid_l = [8, 11], [7, 10]  # Right/left foot joint indices

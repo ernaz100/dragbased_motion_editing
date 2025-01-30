@@ -17,13 +17,15 @@ from backend.priorMDM.utils.model_util import load_model_blending_and_diffusion
 from backend.priorMDM.utils.parser_util import edit_inpainting_args
 
 
-def mini_prior_mdm(humanml3d):
+def mini_prior_mdm(humanml3d:np.ndarray, num_diffusion_steps: int):
     # some setup
     args_list = edit_inpainting_args()
     args = args_list[0]
     fixseed(args.seed)
     dist_util.setup_dist(args.device)
 
+
+    args.diffusion_steps = num_diffusion_steps
     input_motion = torch.tensor(humanml3d).T.unsqueeze(0).unsqueeze(2)
     max_frames = input_motion.shape[-1]
 
@@ -107,8 +109,9 @@ def mini_prior_mdm(humanml3d):
     all_motions.append(new_generated_motion.cpu().numpy())
     all_lengths.append(model_kwargs['y']['lengths'].cpu().numpy())
 
-    print(f"created {len(all_motions) * args.batch_size} samples")
 
+    # The rest is just there to save the animation
+    print(f"created {len(all_motions) * args.batch_size} samples")
 
     all_motions = np.concatenate(all_motions, axis = 0)
     all_motions = all_motions[:total_num_samples]  # [bs, njoints, 6, seqlen]
@@ -181,5 +184,5 @@ def mini_prior_mdm(humanml3d):
     abs_path = os.path.abspath(out_path)
     print(f'[Done] Results are at [{abs_path}]')
 
-    # Bring it into (3, 22, sequence_length) shape
-    return new_generated_motion.squeeze().transpose(0, 1)
+    # Bring the new generated motion into (22, 3, sequence_length) shape
+    return new_generated_motion.squeeze()

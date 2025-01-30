@@ -15,7 +15,8 @@ function Timeline({
     jointPositions,
     setSequencePositions,
     currentFrame,
-    onFrameChange
+    onFrameChange,
+    mode
 }) {
     const [intervalId, setIntervalId] = useState(null);
     const [keyframes, setKeyframes] = useState([]);
@@ -42,7 +43,9 @@ function Timeline({
             console.log(originalKeyframes);
             console.log(keyframes);
             console.log("Number of Diffusion Steps: " + numDiffusionSteps);
-            const response = await fetch(`${BACKEND_URL}/generate_from_keyframes`, {
+            let backend_input = mode === "editing" ? `${BACKEND_URL}/estimate_sequence` : `${BACKEND_URL}/generate_from_keyframes`;
+            console.log("Sending a request to the Backend-URL: " + {backend_input})
+            const response = await fetch(backend_input, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

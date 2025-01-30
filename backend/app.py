@@ -209,59 +209,59 @@ def handle_generate_from_keyframes():
         data = request.get_json()
         logger.info("Received keyframe generation request")
         keyframes = data["keyframes"]
-        number_diffusion_steps: int = int(data["numDiffusionSteps"])
-
         original_keyframes = data.get("originalKeyframes", [])
+        num_diffusion_steps = data["numDiffusionSteps"]
         motion_editing = True if original_keyframes else False
         # Extract frame indices
         keyframe_indices = [kf["frame"] for kf in keyframes]
         first_keyframe_index = keyframe_indices[0] if keyframe_indices else None
-        
+
         # Determine the range to fill with original keyframes
         start_fill = max(0, first_keyframe_index - 20)
         end_fill = first_keyframe_index + 21  # 20 frames on either side + 1 for the keyframe itself
-        
+
         # Initialize combined data
-        max_frame =  196 if original_keyframes else max(kf['frame'] for kf in keyframes) + 1
+        max_frame = 196 if original_keyframes else max(kf['frame'] for kf in keyframes) + 1
         combined_data = np.zeros((max_frame, 263))  # Initialize with zeros
-        
+
         # Process each keyframe
         for keyframe in keyframes:
             frame_idx = keyframe['frame']
             motion_data = keyframe['motionData']
-            
+
             # Store global information
             combined_data[frame_idx, 0] = motion_data['global']['rootRotationDelta']  # 1 value
             combined_data[frame_idx, 1:3] = motion_data['global']['rootPositionDelta']  # 2 values
             combined_data[frame_idx, 3] = motion_data['global']['rootHeight']  # 1 value
-            
+
             # Create remapped arrays with correct sizes
             positions = np.zeros((21, 3))  # 21 joints x 3 coordinates
             rotations = np.zeros((21, 6))  # 21 joints x 6 rotation values
             velocities = np.zeros((22, 3))  # 22 joints (including root) x 3 coordinates
-            
+
             # Get original data
             orig_positions = np.array(motion_data['local']['jointPositions']).reshape(-1, 3)
             orig_rotations = np.array(motion_data['local']['jointRotations']).reshape(-1, 6)
             orig_velocities = np.array(motion_data['local']['jointVelocities']).reshape(-1, 3)
-            
+
             # Remap positions and rotations using joint_mapping_no_hands_no_pelvis (21 joints)
             for frontend_idx, smpl_idx in joint_mapping_no_hands_no_pelvis.items():
-                positions[smpl_idx] = orig_positions[frontend_idx] 
-                rotations[smpl_idx] = orig_rotations[frontend_idx]  
-            
-            # Remap velocities using joint_mapping_no_hands (22 joints including root)
+                positions[smpl_idx] = orig_positions[frontend_idx]
+                rotations[smpl_idx] = orig_rotations[frontend_idx]
+
+                # Remap velocities using joint_mapping_no_hands (22 joints including root)
             for frontend_idx, smpl_idx in joint_mapping_no_hands.items():
                 velocities[smpl_idx] = orig_velocities[frontend_idx]
-            
+
             # Store remapped data
             combined_data[frame_idx, 4:67] = positions.reshape(-1)  # joint positions: 21*3 = 63 values
             combined_data[frame_idx, 67:193] = rotations.reshape(-1)  # joint rotations: 21*6 = 126 values
-            combined_data[frame_idx, 193:259] = velocities.reshape(-1)  # joint velocities, including pelvis: 22*3 = 66 values
-            
+            combined_data[frame_idx, 193:259] = velocities.reshape(
+                -1)  # joint velocities, including pelvis: 22*3 = 66 values
+
             foot_contact = motion_data['local']['footContact']  # 4 values
             combined_data[frame_idx, 259:263] = foot_contact
-        
+
         # Fill the rest with original keyframes
         for original_keyframe in original_keyframes:
             frame_idx = original_keyframe['frame']
@@ -269,37 +269,38 @@ def handle_generate_from_keyframes():
                 break
             if start_fill <= frame_idx < end_fill:
                 continue  # Skip the range around the first keyframe
-            
+
             motion_data = original_keyframe['motionData']
             # Store global information
             combined_data[frame_idx, 0] = motion_data['global']['rootRotationDelta']  # 1 value
             combined_data[frame_idx, 1:3] = motion_data['global']['rootPositionDelta']  # 2 values
             combined_data[frame_idx, 3] = motion_data['global']['rootHeight']  # 1 value
-            
+
             # Create remapped arrays with correct sizes
             positions = np.zeros((21, 3))  # 21 joints x 3 coordinates
             rotations = np.zeros((21, 6))  # 21 joints x 6 rotation values
             velocities = np.zeros((22, 3))  # 22 joints (including root) x 3 coordinates
-            
+
             # Get original data
             orig_positions = np.array(motion_data['local']['jointPositions']).reshape(-1, 3)
             orig_rotations = np.array(motion_data['local']['jointRotations']).reshape(-1, 6)
             orig_velocities = np.array(motion_data['local']['jointVelocities']).reshape(-1, 3)
-            
+
             # Remap positions and rotations using joint_mapping_no_hands_no_pelvis (21 joints)
             for frontend_idx, smpl_idx in joint_mapping_no_hands_no_pelvis.items():
-                positions[smpl_idx] = orig_positions[frontend_idx] 
-                rotations[smpl_idx] = orig_rotations[frontend_idx]  
-            
-            # Remap velocities using joint_mapping_no_hands (22 joints including root)
+                positions[smpl_idx] = orig_positions[frontend_idx]
+                rotations[smpl_idx] = orig_rotations[frontend_idx]
+
+                # Remap velocities using joint_mapping_no_hands (22 joints including root)
             for frontend_idx, smpl_idx in joint_mapping_no_hands.items():
                 velocities[smpl_idx] = orig_velocities[frontend_idx]
-            
+
             # Store remapped data
             combined_data[frame_idx, 4:67] = positions.reshape(-1)  # joint positions: 21*3 = 63 values
             combined_data[frame_idx, 67:193] = rotations.reshape(-1)  # joint rotations: 21*6 = 126 values
-            combined_data[frame_idx, 193:259] = velocities.reshape(-1)  # joint velocities, including pelvis: 22*3 = 66 values
-            
+            combined_data[frame_idx, 193:259] = velocities.reshape(
+                -1)  # joint velocities, including pelvis: 22*3 = 66 values
+
             foot_contact = motion_data['local']['footContact']  # 4 values
             combined_data[frame_idx, 259:263] = foot_contact
 
@@ -307,8 +308,8 @@ def handle_generate_from_keyframes():
         output_path = 'static/motion_data.npy'
         np.save(output_path, combined_data)
 
-        
-        generated_motion = generate_inbetween_motion(combined_data, number_diffusion_steps, keyframe_indices,first_keyframe_index, motion_editing)[0][0]
+        generated_motion = \
+        generate_inbetween_motion(combined_data, num_diffusion_steps, keyframe_indices, first_keyframe_index, motion_editing)[0][0]
         return jsonify({
             'status': 'success',
             'generated_motion': generated_motion.tolist() if generated_motion is not None else None
@@ -319,20 +320,24 @@ def handle_generate_from_keyframes():
         return jsonify({'error': str(e)}), 500
 
 
+
 @app.route('/estimate_sequence', methods = ['POST'])
 def handle_sequence_estimation():
     try:
         # We log that this process is starting
         logger.info("Received sequence estimation request")
+        data = request.get_json()
 
         # let's take the joints from the animation into a ndarray
-        sequence_joints = np.array(request.get_json()["jointPositions"]["allPositions"])[:,1:]  # (sequence_length, 24, 3)
+        sequence_joints = np.array(data["jointPositions"]["allPositions"])[:, 1:]  # (sequence_length, 24, 3)
+        number_diffusion_steps: int = int(data["numDiffusionSteps"])
+
 
         # since mdm uses a different input, we have to convert the joints into their format
         to_human3dml_tensor = prepare_smpl_for_priorMDM(sequence_joints)
 
         # We impaint the sequence again using priormdm
-        sequence_predicted_joints = mini_prior_mdm(to_human3dml_tensor)
+        sequence_predicted_joints = mini_prior_mdm(to_human3dml_tensor, number_diffusion_steps)
 
         return jsonify({
             'status': 'success',
