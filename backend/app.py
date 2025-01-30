@@ -209,6 +209,8 @@ def handle_generate_from_keyframes():
         data = request.get_json()
         logger.info("Received keyframe generation request")
         keyframes = data["keyframes"]
+        number_diffusion_steps: int = int(data["numDiffusionSteps"])
+
         original_keyframes = data.get("originalKeyframes", [])
         motion_editing = True if original_keyframes else False
         # Extract frame indices
@@ -304,8 +306,9 @@ def handle_generate_from_keyframes():
         # Save to .npy file
         output_path = 'static/motion_data.npy'
         np.save(output_path, combined_data)
+
         
-        generated_motion = generate_inbetween_motion(combined_data, keyframe_indices,first_keyframe_index, motion_editing)[0][0]
+        generated_motion = generate_inbetween_motion(combined_data, number_diffusion_steps, keyframe_indices,first_keyframe_index, motion_editing)[0][0]
         return jsonify({
             'status': 'success',
             'generated_motion': generated_motion.tolist() if generated_motion is not None else None

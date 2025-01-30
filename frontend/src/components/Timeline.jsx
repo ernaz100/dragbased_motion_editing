@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Timeline.css';
 import { BACKEND_URL } from './ModelViewer';
 import * as THREE from 'three';
+import NumberInput from "./NumberInput";
 
 function Timeline({
     onTimeChange,
@@ -19,6 +20,7 @@ function Timeline({
     const [intervalId, setIntervalId] = useState(null);
     const [keyframes, setKeyframes] = useState([]);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [numDiffusionSteps, setNumDiffusionSteps] = useState(1000);
 
     const handleUpdateAnimation = async () => {
         if (jointPositions.length < 1) {
@@ -39,6 +41,7 @@ function Timeline({
                 ) : [];
             console.log(originalKeyframes);
             console.log(keyframes);
+            console.log("Number of Diffusion Steps: " + numDiffusionSteps);
             const response = await fetch(`${BACKEND_URL}/generate_from_keyframes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,7 +54,8 @@ function Timeline({
                         frame: kf.frame,
                         motionData: kf.motionData,
                     })),
-                    jointPositions: jointPositions
+                    jointPositions: jointPositions,
+                    numDiffusionSteps: numDiffusionSteps,
                 })
             });
 
@@ -258,6 +262,7 @@ function Timeline({
                     </button>
                     <button onClick={handleAddKeyframe}>Add Keyframe</button>
                 </div>
+                <NumberInput value={numDiffusionSteps} onChangeFunction={setNumDiffusionSteps}></NumberInput>
                 <button onClick={() => {
                     setSequencePositions(null);
                     setKeyframes([]);
