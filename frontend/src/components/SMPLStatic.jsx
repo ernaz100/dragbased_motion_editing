@@ -176,6 +176,36 @@ const SMPLStatic = React.forwardRef(({ modelUrl, onJointSelect, selectedJoint, o
         });
     };
 
+    const handleJointRotate = (index, newQuaternion) => {
+        const updatedRotations = [...joints];
+        updatedRotations[index].bone.quaternion.copy(newQuaternion);
+
+        // Notify parent about rotation update
+        onJointPositionsUpdate({
+            positions: joints.map(joint =>
+                joint.bone.getWorldPosition(new THREE.Vector3()).toArray()
+            ),
+            rotations: joints.map(joint =>
+                joint.bone.quaternion.clone()
+            )
+        });
+    };
+
+    // Add keyboard handler
+    useEffect(() => {
+        const handleKeyPress = (e) => {
+            if (selectedJoint !== null && e.key.toLowerCase() === 'r') {
+                const joint = joints[selectedJoint];
+                if (joint) {
+                    joint.bone._transformMode = joint.bone._transformMode === "translate" ? "rotate" : "translate";
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [selectedJoint, joints]);
+
     // Add cleanup effect
     useEffect(() => {
         return () => {
@@ -220,6 +250,11 @@ const SMPLStatic = React.forwardRef(({ modelUrl, onJointSelect, selectedJoint, o
                             e.stopPropagation();
                             onJointSelect(index);
                         }}
+                        onContextMenu={(event) => {
+                            event.preventDefault?.();
+                            event.stopPropagation();
+                            onJointSelect(index);
+                        }}
                     >
                         <sphereGeometry args={[0.02, 16, 16]} />
                         <meshStandardMaterial
@@ -232,10 +267,14 @@ const SMPLStatic = React.forwardRef(({ modelUrl, onJointSelect, selectedJoint, o
                     return (
                         <group key={`joint-${index}`}>
                             <TransformControls
-                                mode="translate"
+                                mode={bone._transformMode || "translate"}
                                 object={bone}
                                 onObjectChange={(e) => {
-                                    handleJointDrag(index, e.target.object.getWorldPosition(new THREE.Vector3()));
+                                    if (e.target.mode === "translate") {
+                                        handleJointDrag(index, e.target.object.getWorldPosition(new THREE.Vector3()));
+                                    } else if (e.target.mode === "rotate") {
+                                        handleJointRotate(index, e.target.object.quaternion);
+                                    }
                                 }}
                             />
                             <group position={worldPos}>

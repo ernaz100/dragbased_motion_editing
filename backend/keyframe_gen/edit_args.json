@@ -52,7 +52,7 @@
     "model_path": "diffusion_motion_inbetweening/save/condmdi_randomframes/model000750000.pt",
     "motion_length": 11.2,
     "motion_length_cut": 6.0,
-    "motion_path": "./diffusion-motion-inbetweening/dataset/HumanML3D/new_joint_vecs_abs_3d/000000.npy",
+    "motion_path": "/Users/ericnazarenus/Desktop/dragbased/diffusion-motion-inbetweening/dataset/HumanML3D/new_joint_vecs_abs_3d/000000.npy",
     "n_keyframes": 5,
     "no_text": false,
     "noise_schedule": "cosine",

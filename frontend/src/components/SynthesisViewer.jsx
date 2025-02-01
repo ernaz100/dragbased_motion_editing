@@ -14,7 +14,6 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
     const [modelUrl, setModelUrl] = useState('/human.glb');
     const smplRef = useRef(null);
     const [pelvisOffset, setPelvisOffset] = useState(null);
-    const keyframes = Array(MAX_KEYFRAME_LENGTH).fill(0);
     const handleJointSelect = (jointIndex) => {
         console.log('Selected joint:', jointIndex);
         setSelectedJoint(jointIndex);

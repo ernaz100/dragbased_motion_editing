@@ -14,7 +14,8 @@ function Timeline({
     jointPositions,
     setSequencePositions,
     currentFrame,
-    onFrameChange
+    onFrameChange,
+    mode
 }) {
     const [intervalId, setIntervalId] = useState(null);
     const [keyframes, setKeyframes] = useState([]);
@@ -28,24 +29,19 @@ function Timeline({
         setIsUpdating(true);
         try {
             // Transform original animation keyframes if they exist
+            // TODO: we need to add allRotations to allPositions
             const originalKeyframes = jointPositions.allPositions ?
-                jointPositions.allPositions.map((positions, frameIndex) =>
-                    transformJointsToKeyframeData(
-                        positions,
-                        frameIndex,
-                        framesPerSecond,
-                        frameIndex > 0 ? { positions: jointPositions.allPositions[frameIndex - 1] } : null
-                    )
-                ) : [];
-            console.log(originalKeyframes);
-            console.log(keyframes);
+                jointPositions.allPositions : [];
+            console.log("keyframes:", keyframes);
+            console.log("oG,keys", originalKeyframes);
+
             const response = await fetch(`${BACKEND_URL}/generate_from_keyframes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    originalKeyframes: originalKeyframes.map(kf => ({
-                        frame: kf.frame,
-                        motionData: kf.motionData,
+                    originalKeyframes: originalKeyframes.map((kf, index) => ({
+                        frame: index,
+                        motionData: kf,
                     })),
                     keyframes: keyframes.map(kf => ({
                         frame: kf.frame,
@@ -93,94 +89,16 @@ function Timeline({
         onFrameChange(newFrame);
     };
 
-    const transformJointsToKeyframeData = (currentPositions, currentFrame, framesPerSecond, prevKeyframe = null) => {
-        const rootPosition = currentPositions[1];
-
-        // Filter out joints 0, 24, and 19 (root and hands)
-        const filteredPositions = currentPositions.filter((_, index) =>
-            ![0, 24, 19].includes(index)
-        );
-
-        // x_p_t: Local joint positions (22 × 3)
-        const localJointPositions = filteredPositions.map(pos => [
-            pos[0] - rootPosition[0],
-            pos[1],
-            pos[2] - rootPosition[2]
-        ]);
-        console.log("local", localJointPositions);
-
-        // Extract joint rotations from the SMPL model
-        // Each joint rotation is represented in 6D rotation format
-        const jointRotations = Array(21).fill([1, 0, 0, 0, 1, 0]); // Default identity rotation if no rotations available
-        console.log("jr", jointRotations);
-
-        // x_global_t: Global motion (4 values total)
-        let currentDeltas = {
-            rootRotationDelta: 0,
-            rootPositionDelta: [rootPosition[0], rootPosition[2]],
-            rootHeight: rootPosition[1]
-        };
-        let globalMotion = {
-            rootRotationDelta: currentDeltas.rootRotationDelta,
-            rootPositionDelta: [...currentDeltas.rootPositionDelta],
-            rootHeight: currentDeltas.rootHeight
-        };
-
-        // ẋ_p_t: Joint velocities (22 joints × 3 dimensions = 66 values)
-        const jointVelocities = filteredPositions.map((pos, idx) => {
-            if (!prevKeyframe) return [0, 0, 0];
-            const prevPos = prevKeyframe.positions[idx];
-            const frameTime = 1 / framesPerSecond;
-            return [
-                (pos[0] - prevPos[0]) / frameTime,
-                (pos[1] - prevPos[1]) / frameTime,
-                (pos[2] - prevPos[2]) / frameTime
-            ];
-        });
-        console.log("jv", jointVelocities);
-
-        // c_t: Foot contact (4 values, one for each foot vertex)
-        const footContact = [
-            currentPositions[8][1] < 0.1 ? 1 : 0,  // left_heel (joint 8)
-            currentPositions[9][1] < 0.1 ? 1 : 0,  // left_toe (joint 9)
-            currentPositions[4][1] < 0.1 ? 1 : 0,  // right_heel (joint 4)
-            currentPositions[5][1] < 0.1 ? 1 : 0   // right_toe (joint 5)
-        ];
-        // 
-        return {
-            frame: currentFrame,
-            positions: filteredPositions,
-            motionData: {
-                // x_global_t ∈ R⁴
-                global: globalMotion,
-                // x_local_t ∈ R²⁵⁹
-                local: {
-                    jointPositions: localJointPositions.slice(1),//    R⁶³  (21x3)
-                    jointRotations: jointRotations,         // R¹²⁶ (21×6)
-                    jointVelocities: jointVelocities,       // R⁶⁶ (22×3)
-                    footContact: footContact                // R⁴
-                }
-            }
-        };
-    };
-
     const handleAddKeyframe = () => {
         setKeyframes(prev => {
             // Skip if no positions available
             if (!jointPositions?.current || !Array.isArray(jointPositions.current.positions)) return prev;
 
             const currentPositions = [...jointPositions.current.positions];
-            console.log("curr", currentPositions);
-
-            const prevKeyframe = prev.length > 0 ? prev[prev.length - 1] : null;
-
-            const keyframeData = transformJointsToKeyframeData(
-                currentPositions,
-                currentFrame,
-                framesPerSecond,
-                prevKeyframe
-            );
-
+            const keyframeData = {
+                frame: currentFrame,
+                motionData: currentPositions
+            }
             // Check if frame already exists
             const existingIndex = prev.findIndex(kf => kf.frame === currentFrame);
             if (existingIndex >= 0) {
@@ -195,7 +113,7 @@ function Timeline({
         });
 
         // After adding the keyframe, move the current frame forward by 20
-        const nextFrame = Math.min(currentFrame + 2, 195);
+        const nextFrame = Math.min(currentFrame + 5, 195);
         onFrameChange(nextFrame);
     };
 

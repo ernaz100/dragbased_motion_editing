@@ -92,6 +92,7 @@ function App() {
                     setSequencePositions={setSequencePositions}
                     onFrameChange={setCurrentFrame}
                     currentFrame={currentFrame}
+                    mode={mode}
                 />
             </div>
         </div>
