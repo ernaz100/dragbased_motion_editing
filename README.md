@@ -21,7 +21,7 @@ A web application for viewing and manipulating SMPL 3D human models with real-ti
 ## Download Model files
 
 1. Download the pose network weights from our Google Drive: https://drive.google.com/file/d/1kEuWw1R6AgT36nEVBch9Zkq6u9oLVWxE/view?usp=sharing and place it into backend/checkpoints
-2. Download the SMPL Body Model https://drive.google.com/drive/folders/1Ti3VvotOZ04qls6zzSxIlT_R2Xi9ovlV?usp=sharing and place it into models/ (you want this structure: models/smpl/SMPL_FEMALE.pkl )
+2. Download the SMPL Body Model https://drive.google.com/file/d/1WJyEHeKGddPo8DSvYfOwBHjGAjwlUTfn/view?usp=drive_link and place it into models/ (you want this structure: models/smpl/SMPL_FEMALE.pkl )
 3. Download the priorMDM left wrist finetuned model https://drive.google.com/file/d/17h98FQhu6dFj70YCopFHT4sL6jZOf42U/view , unzip and place the model000280000.pt file into backend/priorMDM/save/left_wrist_finetuned/
 4. Download the condMDI model: https://drive.google.com/file/d/1aP-z1JxSCTcUHhMqqdL2wbwQJUZWHT2j/view, unzip and place the model000750000.pt file into backend/diffusion_motion_inbetweening/save/condmdi_randomframes
 5. Download the HumanML3D dataset: and place it into backend/diffusion_motion_inbetweening/dataset/HumanML3D
