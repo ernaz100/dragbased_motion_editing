@@ -4,7 +4,7 @@ A web application for viewing and manipulating SMPL 3D human models with real-ti
 
 ## Prerequisites
 
-- Python 3.8 (for backend)
+- Python 3.8.10 (for backend)
 - Node.js 14+ (for frontend)
 - Git
 
@@ -48,14 +48,14 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
+
 4. Install the required Python packages:
 ```bash
+pip install wheel
+pip install setuptools
+pip install chumpy --no-build-isolation
+pip install git+https://github.com/openai/CLIP.git
 pip install -r requirements.txt
-```
-
-5. Create a `static` directory for storing generated files:
-```bash
-mkdir static
 ```
 
 6. Download the necesssary data for condMDI:
@@ -71,6 +71,7 @@ bash prepare/download_recognition_unconstrained_models.sh
 
 7. Start the Flask server:
 ```bash
+cd ..
 python app.py
 ```
 
