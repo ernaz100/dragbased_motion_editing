@@ -58,6 +58,11 @@ pip install git+https://github.com/openai/CLIP.git
 pip install -r requirements.txt
 ```
 
+5. Because of dependency issues you need to go into the installed chumpy package and delete the line 11 from __init__.py (e.g line 11 at /.pyenv/versions/3.8.10/lib/python3.8/site-packages/chumpy/__init__.py):  
+```bash
+from numpy import bool, int, float, complex, object, unicode, str, nan, inf ## delete this
+```
+
 6. Download the necesssary data for condMDI:
 ```bash
 cd diffusion_motion_inbetweening/

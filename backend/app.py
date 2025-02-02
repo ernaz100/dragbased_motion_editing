@@ -105,11 +105,6 @@ checkpoint = torch.load('checkpoints/model_training_batch_256_epochs25.pth', map
 pose_network.load_state_dict(checkpoint['model_state_dict'])
 pose_network.to(device)
 pose_network.eval()
-sequence_network = MotionSequenceNetwork()
-seq_checkpoint = torch.load('sequence_checkpoints/best_sequence_model.pth', map_location=device, weights_only=True)
-sequence_network.load_state_dict(seq_checkpoint['model_state_dict'])
-sequence_network.to(device)
-sequence_network.eval()
 @app.route('/static/<path:path>')
 def send_static(path):
     return send_from_directory('static', path)
