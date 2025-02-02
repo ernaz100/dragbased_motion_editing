@@ -66,7 +66,7 @@ def load_and_transform_motion(motion, mean, std):
     return motion, m_length
 
 
-def generate_inbetween_motion(motion, keyframeIndices,first_keyframe_index = None, motion_editing = False):
+def generate_inbetween_motion(motion, keyframeIndices,first_keyframe_index = None, motion_editing = False, number_diffusion_steps = 10):
     out_path = "./keyframe_gen"
     max_frames = 196
     use_test_set_prompts = False
@@ -75,7 +75,7 @@ def generate_inbetween_motion(motion, keyframeIndices,first_keyframe_index = Non
     split = 'test'
     data = load_dataset(args, max_frames, split=split)
     print("Creating model and diffusion...")
-    model, diffusion = create_model_and_diffusion(args, data)
+    model, diffusion = create_model_and_diffusion(args, data, number_diffusion_steps)
 
     ###################################
     # LOADING THE MODEL FROM CHECKPOINT

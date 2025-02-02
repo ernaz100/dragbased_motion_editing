@@ -33,13 +33,13 @@ const SMPLAnimated = React.forwardRef(({ modelUrl, onJointSelect, animationTime,
         } else {
             const animation = animations[0];
             const quaternionTrack = animation.tracks.find(track => track.name.endsWith('.quaternion') && !track.name.includes('root'));
-            const numKeyframes = quaternionTrack?.times.length || 0;
+            const numKeyframes = 196 //quaternionTrack?.times.length || 0;
             const duration = animation.duration;
             console.log(animation.tracks);
             onAnimationLoaded({
                 duration,
                 numKeyframes,
-                framesPerSecond: numKeyframes / duration
+                framesPerSecond: quaternionTrack?.times.length / duration
             });
         }
         // Automatically scale the model to a consistent size (2 units)
@@ -107,10 +107,13 @@ const SMPLAnimated = React.forwardRef(({ modelUrl, onJointSelect, animationTime,
             ref.current = {
                 scene,
                 joints: foundJoints,
-                resetJoints: () => {
+                resetJoints: (jointIndicesToReset) => {
                     if (animations && animations.length > 0) {
                         const animation = animations[0];
-                        foundJoints.forEach((joint) => {
+                        foundJoints.forEach((joint, index) => {
+                            // Skip if this joint is not in the reset list
+                            if (!jointIndicesToReset.includes(index)) return;
+
                             // Find position track for this joint
                             const positionTrack = animation.tracks.find(
                                 track => track.name === `${joint.bone.name}.position`
@@ -145,6 +148,41 @@ const SMPLAnimated = React.forwardRef(({ modelUrl, onJointSelect, animationTime,
                                 const position = p1.lerp(p2, alpha);
 
                                 joint.bone.position.copy(position);
+                            }
+
+                            // Also reset quaternion if available
+                            const quaternionTrack = animation.tracks.find(
+                                track => track.name === `${joint.bone.name}.quaternion`
+                            );
+
+                            if (quaternionTrack) {
+                                const times = quaternionTrack.times;
+                                const values = quaternionTrack.values;
+
+                                let index = times.findIndex(t => t > animationTime) - 1;
+                                if (index < 0) index = 0;
+                                if (index >= times.length - 1) index = times.length - 2;
+
+                                const t1 = times[index];
+                                const t2 = times[index + 1];
+                                const q1 = new THREE.Quaternion(
+                                    values[index * 4],
+                                    values[index * 4 + 1],
+                                    values[index * 4 + 2],
+                                    values[index * 4 + 3]
+                                );
+                                const q2 = new THREE.Quaternion(
+                                    values[(index + 1) * 4],
+                                    values[(index + 1) * 4 + 1],
+                                    values[(index + 1) * 4 + 2],
+                                    values[(index + 1) * 4 + 3]
+                                );
+
+                                // Spherical linear interpolation for quaternions
+                                const alpha = (animationTime - t1) / (t2 - t1);
+                                const quaternion = q1.slerp(q2, alpha);
+
+                                joint.bone.quaternion.copy(quaternion);
                             }
                         });
                         scene.updateMatrixWorld(true);

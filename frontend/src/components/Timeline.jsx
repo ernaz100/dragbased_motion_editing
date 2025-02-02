@@ -20,6 +20,8 @@ function Timeline({
     const [intervalId, setIntervalId] = useState(null);
     const [keyframes, setKeyframes] = useState([]);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [diffusionSteps, setDiffusionSteps] = useState(10);
+    const [selectedModel, setSelectedModel] = useState('condMDI');
 
     const handleUpdateAnimation = async () => {
         if (jointPositions.length < 1) {
@@ -29,13 +31,15 @@ function Timeline({
         setIsUpdating(true);
         try {
             // Transform original animation keyframes if they exist
-            // TODO: we need to add allRotations to allPositions
             const originalKeyframes = jointPositions.allPositions ?
                 jointPositions.allPositions : [];
             console.log("keyframes:", keyframes);
             console.log("oG,keys", originalKeyframes);
 
-            const response = await fetch(`${BACKEND_URL}/generate_from_keyframes`, {
+            const endpoint = selectedModel === 'priorMDM' ?
+                'estimate_sequence' : 'generate_from_keyframes';
+
+            const response = await fetch(`${BACKEND_URL}/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -46,7 +50,8 @@ function Timeline({
                     keyframes: keyframes.map(kf => ({
                         frame: kf.frame,
                         motionData: kf.motionData,
-                    }))
+                    })),
+                    diffusion_steps: diffusionSteps
                 })
             });
 
@@ -113,8 +118,10 @@ function Timeline({
         });
 
         // After adding the keyframe, move the current frame forward by 20
-        const nextFrame = Math.min(currentFrame + 5, 195);
-        onFrameChange(nextFrame);
+        if (mode !== "editing") {
+            const nextFrame = Math.min(currentFrame + 5, 195);
+            onFrameChange(nextFrame);
+        }
     };
 
     // Start/stop autoplay
@@ -174,6 +181,31 @@ function Timeline({
                         {isUpdating ? "Updating..." : "Update Animation"}
                     </button>
                     <button onClick={handleAddKeyframe}>Add Keyframe</button>
+                    {mode === "editing" && (
+                        <div className="select-container">
+                            <label htmlFor="model-select">Model:</label>
+                            <select
+                                id="model-select"
+                                value={selectedModel}
+                                onChange={(e) => setSelectedModel(e.target.value)}
+                            >
+                                <option value="condMDI">condMDI</option>
+                                <option value="priorMDM">priorMDM</option>
+                            </select>
+                        </div>
+                    )}
+                    <div className="select-container">
+                        <label htmlFor="steps-select">Diffusion Steps:</label>
+                        <select
+                            id="steps-select"
+                            value={diffusionSteps}
+                            onChange={(e) => setDiffusionSteps(Number(e.target.value))}
+                        >
+                            <option value={10}>10</option>
+                            <option value={100}>100</option>
+                            <option value={1000}>1000</option>
+                        </select>
+                    </div>
                 </div>
                 <button onClick={() => {
                     setSequencePositions(null);

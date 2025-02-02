@@ -23,7 +23,7 @@ def load_model_wo_clip(model: nn.Module, state_dict):
     assert all([k.startswith('clip_model.') for k in missing_keys])
 
 
-def create_model_and_diffusion(args: FullModelOptions, data: DataLoader):
+def create_model_and_diffusion(args: FullModelOptions, data: DataLoader, number_diffusion_steps = 10):
     if args.arch.startswith('dit'):
         # NOTE: adding 'two_head' in the args.arch would imply two_head=True
         # the model would predict both eps and x0.
@@ -33,7 +33,7 @@ def create_model_and_diffusion(args: FullModelOptions, data: DataLoader):
         model = MDM_UNET(**get_model_args(args, data))
     else:
         model = MDM(**get_model_args(args, data))
-    diffusion = create_gaussian_diffusion(args)
+    diffusion = create_gaussian_diffusion(args,number_diffusion_steps)
     return model, diffusion
 
 
@@ -119,8 +119,8 @@ def get_model_args(args: FullModelOptions, data: DataLoader):
     }
 
 
-def create_gaussian_diffusion(args: FullModelOptions):
-    steps = 10  # 1000
+def create_gaussian_diffusion(args: FullModelOptions, number_diffusion_steps = 10):
+    steps = number_diffusion_steps  # 1000
     scale_beta = 1.  # no scaling
     if args.use_ddim:
         timestep_respacing = 'ddim100' # 'ddim100'  # can be used for ddim sampling, we don't use it.

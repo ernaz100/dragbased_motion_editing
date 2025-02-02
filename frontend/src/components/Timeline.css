@@ -42,6 +42,54 @@ button {
     background: #555;
 }
 
+.timeline-controls select {
+    padding: 16px 32px 8px 8px;
+    /* Increased top padding to make room for label */
+    background: #444;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+    padding-right: 32px;
+    min-width: 120px;
+}
+
+.timeline-controls select:hover {
+    background: #555;
+}
+
+/* Custom dropdown arrow */
+.timeline-controls select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+/* Remove default focus outline and add custom one */
+.timeline-controls select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Style for disabled state */
+.timeline-controls select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Firefox specific styles */
+@-moz-document url-prefix() {
+    .timeline-controls select {
+        text-indent: 0.01px;
+        text-overflow: '';
+    }
+}
+
 .timeline-slider {
     background: #2a2a2a;
     padding: 16px;
@@ -170,4 +218,21 @@ button[disabled] {
 
 button[title] {
     position: relative;
+}
+
+.timeline-controls .select-container {
+    position: relative;
+}
+
+.timeline-controls .select-container label {
+    position: absolute;
+    top: 2px;
+    left: 8px;
+    color: #999;
+    font-size: 10px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    z-index: 1;
 }

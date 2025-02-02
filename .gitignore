@@ -2,7 +2,6 @@ backend/venv
 __pycache__/
 *.pyc
 .DS_Store 
-priormdm/
 diffusion-motion-inbetweening/
 backend/diffusion_motion_inbetweening/dataset/
 backend/diffusion_motion_inbetweening/kit/

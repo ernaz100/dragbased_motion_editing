@@ -1,6 +1,7 @@
 import sys
 import os
 from diffusion_motion_inbetweening import generate_inbetween_motion, test
+from human3dml_util.mini_prior_mdm import mini_prior_mdm
 from sequence_network import MotionSequenceNetwork
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -206,6 +207,7 @@ def handle_generate_from_keyframes():
         logger.info("Received keyframe generation request")
         keyframes = data["keyframes"]
         original_keyframes = data.get("originalKeyframes", [])
+        number_diffusion_steps: int = int(data["diffusion_steps"])
         motion_editing = True if original_keyframes else False
         # Extract frame indices
         keyframe_indices = [kf["frame"] for kf in keyframes]
@@ -253,7 +255,7 @@ def handle_generate_from_keyframes():
         output_path = 'static/motion_data.npy'
         np.save(output_path, combined_data)
         
-        generated_motion = generate_inbetween_motion(combined_data, keyframe_indices,first_keyframe_index, motion_editing)[0][0]
+        generated_motion = generate_inbetween_motion(combined_data, keyframe_indices,first_keyframe_index, motion_editing, number_diffusion_steps)[0][0]
         return jsonify({
             'status': 'success',
             'generated_motion': generated_motion.tolist() if generated_motion is not None else None
@@ -263,76 +265,41 @@ def handle_generate_from_keyframes():
         logger.error(f"Error during generation from keyframes: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
-@app.route('/estimate_sequence', methods=['POST'])
+
+@app.route('/estimate_sequence', methods = ['POST'])
 def handle_sequence_estimation():
     try:
-        data = request.get_json()
+        # We log that this process is starting
         logger.info("Received sequence estimation request")
-        
-        if 'joint_positions' not in data or "history_positions" not in data:
-            logger.error("No joint positions / history positions provided in request")
-            return jsonify({'error': 'No joint positions provided'}), 400
-        sequence_data = data['history_positions']        
-        # Initialize sequence positions with zeros
-        sequence_positions = np.zeros((30, 24, 3))
-        
-        # Get the last 30 entries if more exist, otherwise use all available entries
-        sequence_data = sequence_data[-30:] if len(sequence_data) > 30 else sequence_data
-        
-        # Fill the sequence positions from the end, leaving zeros at the start if less than 30 entries
-        start_idx = 30 - len(sequence_data)
-        for i, frame in enumerate(sequence_data):
-            # First, get the root joint position for this frame
-            root_joint = np.array([frame[0]['x'], frame[0]['y'], frame[0]['z']])
-            
-            for j, joint in enumerate(frame):
-                # Subtract root joint position to normalize
-                sequence_positions[start_idx + i, j, 0] = joint['x'] - root_joint[0]
-                sequence_positions[start_idx + i, j, 1] = joint['y'] - root_joint[1]
-                sequence_positions[start_idx + i, j, 2] = joint['z'] - root_joint[2]
-        
-        # Validate input shape
-        if sequence_positions.shape != (30, 24, 3):
-            logger.error(f"Invalid sequence positions shape: {sequence_positions.shape}")
-            return jsonify({'error': 'Invalid sequence positions format. Expected shape: (30, 24, 3)'}), 400
-        
-        joint_positions = np.array(data['joint_positions'])
-        # Normalize joint positions relative to root joint (pelvis)
-        root_joint = joint_positions[0]  # Get pelvis position
-        joint_positions = joint_positions - root_joint  
+        data = request.get_json()
+        keyframes = data["keyframes"]
+        original_keyframes = data.get("originalKeyframes", [])
+        number_diffusion_steps: int = int(data["diffusion_steps"])
 
-        logger.info(f"Received joint positions with shape: {joint_positions.shape}")
-        
-        # Remap joints to SMPL order 
-        remapped_joints = remap_joints(joint_positions)
-        remapped_sequences = np.array([remap_joints(x) for x in sequence_positions])
-        # Transform joints to match SMPL coordinate system 
-        transformed_joints = transform_input_joints(remapped_joints)
-        transformed_sequences = np.array([transform_input_joints(x) for x in remapped_sequences])
+        # let's take the joints from the animation into a ndarray
+        sequence_joints = np.array([kf["motionData"][1:] for kf in original_keyframes])      # (sequence_length, 24, 3)             
+        for kf in keyframes:
+            i = kf["frame"]
+            motion = kf["motionData"][1:]
+            sequence_joints[i] = np.array(motion)
 
-        # Prepare input for pose network
-        joints_tensor = torch.tensor(transformed_joints, dtype=torch.float32).unsqueeze(0)  # Add batch dim
-        joints_tensor = joints_tensor.to(device)
-        sequence_tensor = torch.tensor(transformed_sequences, dtype=torch.float32).unsqueeze(0)  # Add batch dim
-        sequence_tensor = sequence_tensor.to(device)
+        # Map the joint order into the smpl format
+        smpl_sequence_joints = np.array([remap_joints(kf) for kf in sequence_joints])
 
-        # Get pose parameters from network
-        with torch.no_grad():
-            pose_params = sequence_network(input_sequence = sequence_tensor, target_position = joints_tensor, output_sequence_length = 30)
-            pose_params = pose_params.cpu().numpy().squeeze()  # Remove batch dim
 
-        
-        frontend_pose_params = [remap_pose_params_back(x).tolist() for x in pose_params]
+        # since mdm uses a different input, we have to convert the joints into their format
+        to_human3dml_tensor = prepare_smpl_for_priorMDM(smpl_sequence_joints)
 
-        result = {
-            'pose_params': frontend_pose_params,
-            'status': 'success'
-        }
-        
-        return jsonify(result)
-        
+        # We impaint the sequence again using priormdm
+        sequence_predicted_joints = mini_prior_mdm(to_human3dml_tensor, number_diffusion_steps)
+
+        return jsonify({
+            'status': 'success',
+            'generated_motion': sequence_predicted_joints.tolist() if sequence_predicted_joints is not None else None
+        })
+
     except Exception as e:
-        logger.error(f"Error during pose estimation: {str(e)}", exc_info=True)
+        logger.error(f"Error during sequence estimation: {str(e)}", exc_info = True)
         return jsonify({'error': str(e)}), 500
 
 

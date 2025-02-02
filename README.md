@@ -4,7 +4,7 @@ A web application for viewing and manipulating SMPL 3D human models with real-ti
 
 ## Prerequisites
 
-- Python 3.8+ (for backend)
+- Python 3.8 (for backend)
 - Node.js 14+ (for frontend)
 - Git
 
@@ -19,7 +19,12 @@ A web application for viewing and manipulating SMPL 3D human models with real-ti
 ```
 
 ## Download Model files
-1. Download the model files from our Google Drive: https://drive.google.com/drive/folders/18UGjxcR_ii4SNqyS8O0j-3A4wWwy00Bn?usp=drive_link and place into the project folder
+
+1. Download the pose network weights from our Google Drive: https://drive.google.com/file/d/1kEuWw1R6AgT36nEVBch9Zkq6u9oLVWxE/view?usp=sharing and place it into backend/checkpoints
+2. Download the SMPL Body Model https://drive.google.com/drive/folders/1Ti3VvotOZ04qls6zzSxIlT_R2Xi9ovlV?usp=sharing and place it into models/ (you want this structure: models/smpl/SMPL_FEMALE.pkl )
+3. Download the priorMDM left wrist finetuned model https://drive.google.com/file/d/17h98FQhu6dFj70YCopFHT4sL6jZOf42U/view , unzip and place the model000280000.pt file into backend/priorMDM/save/left_wrist_finetuned/
+4. Download the condMDI model: https://drive.google.com/file/d/1aP-z1JxSCTcUHhMqqdL2wbwQJUZWHT2j/view, unzip and place the model000750000.pt file into backend/diffusion_motion_inbetweening/save/condmdi_randomframes
+5. Download the HumanML3D dataset: and place it into backend/diffusion_motion_inbetweening/dataset/HumanML3D
 
 ## Backend Setup
 
@@ -53,7 +58,18 @@ pip install -r requirements.txt
 mkdir static
 ```
 
-6. Start the Flask server:
+6. Download the necesssary data for condMDI:
+```bash
+cd diffusion_motion_inbetweening/
+bash prepare/download_smpl_files.sh
+bash prepare/download_glove.sh
+bash prepare/download_t2m_evaluators.sh
+bash prepare/download_smpl_files.sh
+bash prepare/download_recognition_unconstrained_models.sh
+```
+
+
+7. Start the Flask server:
 ```bash
 python app.py
 ```
@@ -88,6 +104,7 @@ The frontend application will start running on `http://localhost:3000`
    - Drag joints to modify poses
    - Use the timeline controls to play animations
    - Update poses using the "Update Pose" button
+   - Update animations by changing poses and adding the keyframes, then pressing Update Animation
 
 ## Development
 
