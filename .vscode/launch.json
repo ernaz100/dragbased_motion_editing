@@ -1,0 +1,52 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Flask",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "app.py",
+                "FLASK_DEBUG": "1"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload",
+                "--host=0.0.0.0",
+                "--port=5001"
+            ],
+            "jinja": true,
+            "python": "${workspaceFolder}/backend/venv/bin/python",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/backend"
+        },
+        {
+            "name": "Debug Conditional Synthesis",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "sample.conditional_synthesis",
+            "args": [
+                "--model_path",
+                "./save/condmdi_randomframes/model000750000.pt",
+                "--motion_path",
+                "/Users/ericnazarenus/Desktop/dragbased/diffusion-motion-inbetweening/dataset/HumanML3D/new_joint_vecs_abs_3d/000000.npy",
+                "--edit_mode",
+                "benchmark_sparse",
+                "--transition_length",
+                "5",
+                "--num_samples",
+                "10",
+                "--num_repetitions",
+                "3",
+                "--text_prompt",
+                "a person throws a ball"
+            ],
+            "jinja": true,
+            "python": "${workspaceFolder}/backend/venv/bin/python",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/diffusion-motion-inbetweening"
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/dragbased_motion_editing/static/css/main.e64571c0.css",
+    "main.js": "/dragbased_motion_editing/static/js/main.ebaad868.js",
+    "index.html": "/dragbased_motion_editing/index.html",
+    "main.e64571c0.css.map": "/dragbased_motion_editing/static/css/main.e64571c0.css.map",
+    "main.ebaad868.js.map": "/dragbased_motion_editing/static/js/main.ebaad868.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e64571c0.css",
+    "static/js/main.ebaad868.js"
+  ]
+}
