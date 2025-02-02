@@ -1,6 +1,6 @@
 import os
 
-SMPL_DATA_PATH = "/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/body_models/smpl"
+SMPL_DATA_PATH = "../../diffusion_motion_inbetweening/body_models/smpl"
 
 SMPL_KINTREE_PATH = os.path.join(SMPL_DATA_PATH, "kintree_table.pkl")
 SMPL_MODEL_PATH = os.path.join(SMPL_DATA_PATH, "SMPL_NEUTRAL.pkl")

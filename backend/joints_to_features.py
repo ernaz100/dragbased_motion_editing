@@ -100,6 +100,12 @@ def process_file(positions, feet_thre, tgt_offsets, l_idx1, l_idx2, fid_r, fid_l
         feet_r = (((feet_r_x + feet_r_y + feet_r_z) < velfactor)).astype(np.float32)
 
         if not motion_editing:
+            # Check if we have any data before padding
+            if len(feet_l) == 0 or len(feet_r) == 0:
+                # Handle empty sequences
+                feet_l_padded = np.zeros((positions.shape[0], len(fid_l)))
+                feet_r_padded = np.zeros((positions.shape[0], len(fid_r)))
+                return feet_l_padded, feet_r_padded
             # Pad foot contacts to match sequence length
             feet_l_padded = np.zeros((positions.shape[0], feet_l.shape[1]))
             feet_r_padded = np.zeros((positions.shape[0], feet_r.shape[1]))
@@ -164,11 +170,16 @@ def process_file(positions, feet_thre, tgt_offsets, l_idx1, l_idx2, fid_r, fid_l
         # Pad velocities to maintain sequence length
         r_velocity_padded = np.zeros((positions.shape[0], 1))
         l_velocity_padded = np.zeros((positions.shape[0], 2))
-        r_velocity_padded[1:] = r_velocity
-        l_velocity_padded[1:] = l_velocity
-        # Copy first frame from second frame
-        r_velocity_padded[0] = r_velocity[0]
-        l_velocity_padded[0] = l_velocity[0]
+        
+        # Check if we have any velocity data
+        if len(r_velocity) > 0 and len(l_velocity) > 0:
+            r_velocity_padded[1:] = r_velocity
+            l_velocity_padded[1:] = l_velocity
+            # Copy first frame from second frame
+            r_velocity_padded[0] = r_velocity[0]
+            l_velocity_padded[0] = l_velocity[0]
+        # If no velocity data, arrays remain zero-filled
+        
         root_data = np.concatenate([r_velocity_padded, l_velocity_padded, root_y], axis=-1)
     '''Get Joint Rotation Representation'''
     # (seq_len, (joints_num-1) *6) quaternion for skeleton joints
@@ -180,9 +191,14 @@ def process_file(positions, feet_thre, tgt_offsets, l_idx1, l_idx2, fid_r, fid_l
 
     '''Get Joint Velocity Representation'''
     # (seq_len-1, joints_num*3)
-    local_vel = qrot_np(np.repeat(r_rot[:-1, None], global_positions.shape[1], axis=1),
-                        global_positions[1:] - global_positions[:-1])
-    local_vel = local_vel.reshape(len(local_vel), -1)
+    if len(global_positions) > 1:
+        local_vel = qrot_np(np.repeat(r_rot[:-1, None], global_positions.shape[1], axis=1),
+                           global_positions[1:] - global_positions[:-1])
+        local_vel = local_vel.reshape(len(local_vel), -1)
+    else:
+        # Handle single-frame case
+        local_vel = np.zeros((0, global_positions.shape[1] * 3))
+
     data = root_data
     if not motion_editing:
         # Pad data to maintain sequence length
@@ -190,9 +206,10 @@ def process_file(positions, feet_thre, tgt_offsets, l_idx1, l_idx2, fid_r, fid_l
         data = np.concatenate([data, rot_data], axis=-1)
         
         # Pad local_vel
-        local_vel_padded = np.zeros((positions.shape[0], local_vel.shape[1]))
-        local_vel_padded[1:] = local_vel
-        local_vel_padded[0] = local_vel[0]  # Copy first velocity
+        local_vel_padded = np.zeros((positions.shape[0], global_positions.shape[1] * 3))
+        if len(local_vel) > 0:
+            local_vel_padded[1:] = local_vel
+            local_vel_padded[0] = local_vel[0]  # Copy first velocity
         
         data = np.concatenate([data, local_vel_padded], axis=-1)
         data = np.concatenate([data, feet_l, feet_r], axis=-1)
