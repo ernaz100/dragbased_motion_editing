@@ -46,7 +46,11 @@ function EditingViewer({ currentTime, onAnimationLoaded, onUpdatePoseRef, setCur
     const [selectedJoint, setSelectedJoint] = useState(null);
     const [draggedJointIndices, setDraggedJointIndices] = useState([]);
     const [currentJointPositions, setCurrentJointPositions] = useState(null);
-    const [modelUrl, setModelUrl] = useState('/human.glb');
+    const [modelUrl, setModelUrl] = useState(() => {
+        // Get the base URL from the environment or default to empty string for local development
+        const baseUrl = process.env.PUBLIC_URL || '';
+        return `${baseUrl}/human.glb`;
+    });
     const smplRef = useRef(null);
     const [pelvisOffset, setPelvisOffset] = useState(null);
 
