@@ -4,7 +4,6 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import SMPLAnimated from './SMPLAnimated';
 import BackButton from './BackButton';
-import React from 'react';
 
 export const BACKEND_URL = 'http://localhost:5001';
 
@@ -48,13 +47,9 @@ function EditingViewer({ currentTime, onAnimationLoaded, onUpdatePoseRef, setCur
     const [draggedJointIndices, setDraggedJointIndices] = useState([]);
     const [currentJointPositions, setCurrentJointPositions] = useState(null);
     const [modelUrl, setModelUrl] = useState(() => {
-        // Check if we're running on GitHub Pages
-        const isGitHubPages = window.location.hostname === 'ernaz100.github.io';
-        if (isGitHubPages) {
-            return 'https://ernaz100.github.io/dragbased_motion_editing/human.glb';
-        }
-        // Local development
-        return '/human.glb';
+        // Get the base URL from the environment or default to empty string for local development
+        const baseUrl = process.env.PUBLIC_URL || '';
+        return `${baseUrl}/human.glb`;
     });
     const smplRef = useRef(null);
     const [pelvisOffset, setPelvisOffset] = useState(null);
