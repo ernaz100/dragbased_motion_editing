@@ -243,7 +243,7 @@ class Text2MotionDatasetV2(data.Dataset):
                  use_rand_proj=False,
                  proj_matrix_dir=None,
                  traject_only=False,
-                 mode='train',
+                 mode='test',
                  random_proj_scale=10.0,
                  augment_type='none',
                  std_scale_shift=(1., 0.),  # Test random projection
@@ -269,7 +269,9 @@ class Text2MotionDatasetV2(data.Dataset):
         id_list = []
         test_file_path = os.path.join(script_dir, "..", "..", "..", "dataset", "HumanML3D", "test.txt")
         with cs.open(test_file_path, 'r') as f:
-            for line in f.readlines():
+            for i, line in enumerate(f.readlines()):
+                if i >= 5:
+                    break
                 id_list.append(line.strip())
 
         # NOTE: Small data for debugging

@@ -9,7 +9,7 @@ import poseParams from './pose_params.json';
 
 
 
-export const BACKEND_URL = 'http://localhost:5001';
+export const BACKEND_URL = 'https://5001-01jk8cwbffczk0xdmys1nx28gm.cloudspaces.litng.ai';
 function ModelViewer({ currentTime, onAnimationLoaded, onUpdatePoseRef, onUpdateAnimation, sequencePositions, isPlaying }) {
     const [selectedJoint, setSelectedJoint] = useState(null);
     const [currentJointPositions, setCurrentJointPositions] = useState(null);

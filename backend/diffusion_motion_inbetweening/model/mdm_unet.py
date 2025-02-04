@@ -737,33 +737,34 @@ class MDM_UNET(nn.Module):
             return cond
 
     def encode_text(self, raw_text):
-        # raw_text - list (batch_size length) of strings with input text prompts
         device = next(self.parameters()).device
-        max_text_len = 20 if self.dataset in [
-            'humanml', 'kit'
-        ] else None  # Specific hardcoding for humanml dataset
+        max_text_len = 20 if self.dataset in ['humanml', 'kit'] else None
         if max_text_len is not None:
             default_context_length = 77
             context_length = max_text_len + 2  # start_token + 20 + end_token
             assert context_length < default_context_length
-            texts = clip.tokenize(
-                raw_text, context_length=context_length, truncate=True
-            ).to(
-                device
-            )  # [bs, context_length] # if n_tokens > context_length -> will truncate
-            # print('texts', texts.shape)
-            zero_pad = torch.zeros(
-                [texts.shape[0], default_context_length - context_length],
-                dtype=texts.dtype,
-                device=texts.device)
+            texts = clip.tokenize(raw_text, context_length=context_length, truncate=True).to(device)
+            zero_pad = torch.zeros([texts.shape[0], default_context_length - context_length], 
+                                 dtype=texts.dtype, device=texts.device)
             texts = torch.cat([texts, zero_pad], dim=1)
-            # print('texts after pad', texts.shape, texts)
         else:
-            texts = clip.tokenize(raw_text, truncate=True).to(
-                device
-            )  # [bs, context_length] # if n_tokens > 77 -> will truncate
-        return self.clip_model.encode_text(texts).float()
-
+            texts = clip.tokenize(raw_text, truncate=True).to(device)
+        
+        # Temporarily move CLIP model to float32
+        orig_dtype = self.clip_model.dtype
+        self.clip_model = self.clip_model.float()
+        
+        try:
+            # Disable autocast since we're handling precision explicitly
+            with torch.autocast(device_type='cpu', enabled=False):
+                text_features = self.clip_model.encode_text(texts)
+                text_features = text_features.float()
+        finally:
+            # Restore CLIP model's original dtype
+            self.clip_model = self.clip_model.to(orig_dtype)
+            
+        return text_features
+    
     def forward(self, x, timesteps, y=None, obs_x0=None, obs_mask=None):
         """
         Args:

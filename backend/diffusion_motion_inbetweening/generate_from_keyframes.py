@@ -70,7 +70,7 @@ def generate_inbetween_motion(motion, keyframeIndices,first_keyframe_index = Non
     out_path = "./keyframe_gen"
     max_frames = 196
     use_test_set_prompts = False
-    texts = ['']
+    texts = ['A Person is walking']
     print('Loading dataset...')
     split = 'test'
     data = load_dataset(args, max_frames, split=split)

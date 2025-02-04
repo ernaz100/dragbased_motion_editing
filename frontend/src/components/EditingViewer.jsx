@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import SMPLAnimated from './SMPLAnimated';
 import BackButton from './BackButton';
 
-export const BACKEND_URL = 'http://localhost:5001';
+export const BACKEND_URL = 'https://5001-01jk8cwbffczk0xdmys1nx28gm.cloudspaces.litng.ai';
 
 const SMPL_KINEMATIC_TREE = {
     0: [],           // global root
