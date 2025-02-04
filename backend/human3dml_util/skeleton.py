@@ -1,8 +1,9 @@
 # Original: https://github.com/EricGuo5513/HumanML3D/tree/main
 
-from backend.human3dml_util.quaternion import *
 import scipy.ndimage.filters as filters
-
+import torch
+import numpy as np
+from human3dml_util.quaternion import *
 class Skeleton(object):
     def __init__(self, offset, kinematic_tree, device):
         self.device = device
@@ -194,7 +195,6 @@ class Skeleton(object):
                 # print(matR.shape, offset_vec.shape)
                 joints[:, chain[i]] = torch.matmul(matR, offset_vec).squeeze(-1) + joints[:, chain[i-1]]
         return joints
-
 
 
 

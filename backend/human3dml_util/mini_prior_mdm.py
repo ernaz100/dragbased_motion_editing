@@ -4,17 +4,17 @@ import shutil
 import numpy as np
 import torch
 
-from backend.priorMDM.data_loaders.get_data import get_dataset_loader
-from backend.priorMDM.data_loaders.humanml.scripts.motion_process import recover_from_ric
-from backend.priorMDM.data_loaders.humanml.utils import paramUtil
-from backend.priorMDM.data_loaders.humanml.utils.plot_script import plot_3d_motion
-from backend.priorMDM.data_loaders.humanml_utils import get_inpainting_mask
-from backend.priorMDM.diffusion.inpainting_gaussian_diffusion import InpaintingGaussianDiffusion
-from backend.priorMDM.diffusion.respace import SpacedDiffusion
-from backend.priorMDM.utils import dist_util
-from backend.priorMDM.utils.fixseed import fixseed
-from backend.priorMDM.utils.model_util import load_model_blending_and_diffusion
-from backend.priorMDM.utils.parser_util import edit_inpainting_args
+from priorMDM.data_loaders.get_data import get_dataset_loader
+from priorMDM.data_loaders.humanml.scripts.motion_process import recover_from_ric
+from priorMDM.data_loaders.humanml.utils import paramUtil
+from priorMDM.data_loaders.humanml.utils.plot_script import plot_3d_motion
+from priorMDM.data_loaders.humanml_utils import get_inpainting_mask
+from priorMDM.diffusion.inpainting_gaussian_diffusion import InpaintingGaussianDiffusion
+from priorMDM.diffusion.respace import SpacedDiffusion
+from priorMDM.utils import dist_util
+from priorMDM.utils.fixseed import fixseed
+from priorMDM.utils.model_util import load_model_blending_and_diffusion
+from priorMDM.utils.parser_util import edit_inpainting_args
 
 
 def mini_prior_mdm(humanml3d:np.ndarray, num_diffusion_steps: int):
@@ -57,18 +57,9 @@ def mini_prior_mdm(humanml3d:np.ndarray, num_diffusion_steps: int):
 
     print("Creating model and diffusion...")
     DiffusionClass = InpaintingGaussianDiffusion if args_list[0].filter_noise else SpacedDiffusion
-    model, diffusion = load_model_blending_and_diffusion(args_list, data, dist_util.dev(),
-                                                         DiffusionClass = DiffusionClass)
+    model, diffusion = load_model_blending_and_diffusion(args_list, dist_util.dev(),DiffusionClass=DiffusionClass)
 
-    # iterator = iter(data)
-    # input_motions, model_kwargs = next(iterator)
-    # input_motions = input_motions.to(dist_util.dev())
-
-    # add inpainting mask according to args
-    #assert max_frames == input_motion.shape[-1]
-
-    model_kwargs = {}
-    model_kwargs['y'] = {}
+    model_kwargs = {'y': {}}
     model_kwargs['y']['inpainted_motion'] = input_motion
     model_kwargs['y']['inpainting_mask'] = torch.tensor(
         get_inpainting_mask(args.inpainting_mask, input_motion.shape)).float().to(dist_util.dev())
@@ -168,8 +159,7 @@ def mini_prior_mdm(humanml3d:np.ndarray, num_diffusion_steps: int):
             print(f'[({sample_i}) "{caption}" | Rep #{rep_i} | -> {animation_save_path}]')
             plot_3d_motion(animation_save_path, skeleton, motion, title = caption,
                            dataset = args.dataset, fps = fps, vis_mode = args.inpainting_mask,
-                           gt_frames = gt_frames_per_sample.get(sample_i, []),
-                           painting_features = args.inpainting_mask.split(','))
+                           gt_frames = gt_frames_per_sample.get(sample_i, []))
             # Credit for visualization: https://github.com/EricGuo5513/text-to-motion
 
         if args.num_repetitions > 1:

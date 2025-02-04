@@ -2,16 +2,15 @@ backend/venv
 __pycache__/
 *.pyc
 .DS_Store 
-priormdm/
 diffusion-motion-inbetweening/
-backend/diffusion_motion_inbetweening/dataset/
+backend/diffusion_motion_inbetweening/dataset/HumanML3D
+backend/diffusion_motion_inbetweening/dataset/HumanML3D_abs
 backend/diffusion_motion_inbetweening/kit/
 backend/diffusion_motion_inbetweening/glove/
 backend/diffusion_motion_inbetweening/t2m/
 backend/diffusion_motion_inbetweening/body_models/smpl/
 frontend/node_modules
-backend/static/
-data/
+.data/
 *.pth
 *.npy
 *.npz
@@ -20,4 +19,3 @@ data/
 *.tar
 *.pt
 *.png
-*.glb

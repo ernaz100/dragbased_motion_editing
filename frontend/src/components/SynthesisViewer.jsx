@@ -7,14 +7,55 @@ import * as THREE from 'three';
 
 export const BACKEND_URL = 'http://localhost:5001';
 
+const SMPL_KINEMATIC_TREE = {
+    0: [],           // global root
+    1: [0],          // pelvis
+    2: [1, 0],       // left hip
+    3: [2, 1, 0],    // left knee
+    4: [3, 2, 1, 0], // left ankle
+    5: [4, 3, 2, 1, 0], // left foot
+    6: [1, 0],       // right hip
+    7: [6, 1, 0],    // right knee
+    8: [7, 6, 1, 0], // right ankle
+    9: [8, 7, 6, 1, 0], // right foot
+    10: [1, 0],      // spine1
+    11: [10, 1, 0],  // spine2
+    12: [11, 10, 1, 0], // spine3
+    13: [12, 11, 10, 1, 0], // neck
+    14: [13, 12, 11, 10, 1, 0], // head
+    15: [12, 11, 10, 1, 0],     // left collar
+    16: [15, 12, 11, 10, 1, 0], // left shoulder
+    17: [16, 15, 12, 11, 10, 1, 0], // left elbow
+    18: [17, 16, 15, 12, 11, 10, 1, 0], // left wrist
+    19: [18, 17, 16, 15, 12, 11, 10, 1, 0], // left hand
+    20: [12, 11, 10, 1, 0],     // right collar
+    21: [20, 12, 11, 10, 1, 0], // right shoulder
+    22: [21, 20, 12, 11, 10, 1, 0], // right elbow
+    23: [22, 21, 20, 12, 11, 10, 1, 0], // right wrist
+    24: [23, 22, 21, 20, 12, 11, 10, 1, 0], // right hand
+};
+
+const getKinematicChain = (jointIndex) => {
+    console.log(jointIndex);
+
+    if (jointIndex < 0 || jointIndex >= Object.keys(SMPL_KINEMATIC_TREE).length) {
+        return [];
+    }
+    return [jointIndex, ...SMPL_KINEMATIC_TREE[jointIndex]];
+};
+
 function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrentJointPositionCallback, sequencePositions, currentFrame }) {
     const MAX_KEYFRAME_LENGTH = 196;
     const [selectedJoint, setSelectedJoint] = useState(null);
+    const [draggedJointIndices, setDraggedJointIndices] = useState([]);
     const [currentJointPositions, setCurrentJointPositions] = useState(null);
-    const [modelUrl, setModelUrl] = useState('/human.glb');
+    const [modelUrl, setModelUrl] = useState(() => {
+        // Get the base URL from the environment or default to empty string for local development
+        const baseUrl = process.env.PUBLIC_URL || '';
+        return `${baseUrl}/human.glb`;
+    });
     const smplRef = useRef(null);
     const [pelvisOffset, setPelvisOffset] = useState(null);
-    const keyframes = Array(MAX_KEYFRAME_LENGTH).fill(0);
     const handleJointSelect = (jointIndex) => {
         console.log('Selected joint:', jointIndex);
         setSelectedJoint(jointIndex);
@@ -25,6 +66,12 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
 
     const handleJointPositionsUpdate = ({ positions, rotations }) => {
         setCurrentJointPositionCallback({ positions, rotations }); //absolute positions
+        setDraggedJointIndices(prev => {
+            if (selectedJoint !== null && !prev.includes(selectedJoint)) {
+                return [...prev, selectedJoint];
+            }
+            return prev;
+        });
         const pelvisPos = positions[1];  // Get pelvis position
         setPelvisOffset(pelvisPos); // Store the pelvis offset for later use
 
@@ -65,16 +112,18 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
 
             // First reset the joints to their initial pose
             if (smplRef.current && smplRef.current.resetJoints) {
-                console.log('Resetting specific joints...');
-                const jointIndicesToReset = [selectedJoint - 2, selectedJoint - 1, selectedJoint, selectedJoint + 1, selectedJoint + 2]
+                console.log('Resetting specific joints...', draggedJointIndices);
+                const jointIndicesToReset = draggedJointIndices
+                    .flatMap(joint => [...getKinematicChain(joint), joint])
                     .filter(index => index >= 0 && index < smplRef.current.joints.length && ![0, 1].includes(index));
+                console.log("toReset", jointIndicesToReset);
 
                 smplRef.current.resetJoints(jointIndicesToReset);
 
                 console.log('Applying new rotations...');
                 // Then apply the new rotations
                 smplRef.current.joints.forEach((joint, index) => {
-                    if (![selectedJoint - 2, selectedJoint - 1, selectedJoint, selectedJoint + 1, selectedJoint + 2].includes(index) || [0, 1].includes(index)) return; // Skip root and first few joints
+                    if (!jointIndicesToReset.includes(index) || [0, 1].includes(index)) return; // Skip root and joints not in kinematic chain
                     if (index < 25) { // SMPL has 24 joints (excluding root)
                         const baseIdx = (index - 1) * 3;
                         const axisAngleRotation = new THREE.Vector3(
@@ -105,7 +154,7 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
                         joint.bone.updateMatrixWorld(true);
                     }
                 });
-
+                setDraggedJointIndices([])
                 // Update the entire scene hierarchy
                 smplRef.current.scene.updateMatrixWorld(true);
             }
@@ -155,7 +204,6 @@ function SynthesisViewer({ onBack, onUpdatePoseRef, setAnimationInfo, setCurrent
                 )}
                 <OrbitControls
                     makeDefault
-                    enabled={selectedJoint === null}
                 />
             </Canvas>
         </div>

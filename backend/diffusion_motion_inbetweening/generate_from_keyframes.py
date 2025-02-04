@@ -34,6 +34,8 @@ def load_and_transform_motion(motion, mean, std):
     Returns:
         tuple: (transformed_motion, motion_length)
     """
+   # motion = np.load("/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/dataset/HumanML3D/new_joint_vecs_abs_3d/000404.npy")
+
     # Ensure motion length is valid
     min_motion_len = 40
     if len(motion) < min_motion_len:
@@ -64,7 +66,7 @@ def load_and_transform_motion(motion, mean, std):
     return motion, m_length
 
 
-def generate_inbetween_motion(motion, num_diffusion_steps: int, keyframeIndices,first_keyframe_index = None, motion_editing = False):
+def generate_inbetween_motion(motion, keyframeIndices,first_keyframe_index = None, motion_editing = False, number_diffusion_steps = 10):
     out_path = "./keyframe_gen"
     max_frames = 196
     args.diffusion_steps = num_diffusion_steps  # df: This does not seem to be enough. @Eric, can you insert it into your pipeline properly
@@ -74,7 +76,7 @@ def generate_inbetween_motion(motion, num_diffusion_steps: int, keyframeIndices,
     split = 'test'
     data = load_dataset(args, max_frames, split=split)
     print("Creating model and diffusion...")
-    model, diffusion = create_model_and_diffusion(args, data)
+    model, diffusion = create_model_and_diffusion(args, data, number_diffusion_steps)
 
     ###################################
     # LOADING THE MODEL FROM CHECKPOINT
@@ -91,7 +93,6 @@ def generate_inbetween_motion(motion, num_diffusion_steps: int, keyframeIndices,
     # Load specific motion file instead of using dataloader
     input_motions, input_lengths = load_and_transform_motion(motion, mean, std)
     input_lengths = torch.tensor([input_lengths])
-    
     # Ensure input_motions has a batch dimension
     if input_motions.dim() == 3:
         input_motions = input_motions.unsqueeze(0)  # Add batch dimension
@@ -112,11 +113,11 @@ def generate_inbetween_motion(motion, num_diffusion_steps: int, keyframeIndices,
     # Set all joints to True for each keyframe
     for frame_idx in keyframeIndices:
         if motion_editing and first_keyframe_index is not None:
-            # Mask frames within ±20 of the first keyframe index, excluding the first keyframe index
-            if frame_idx != first_keyframe_index and abs(frame_idx - first_keyframe_index) <= 20:
-                obs_mask[...,:67, frame_idx] = True
+            obs_mask[..., 0:first_keyframe_index-20] = True  # From start to keyframe-20
+            obs_mask[..., first_keyframe_index] = True  # At Keyframe
+            obs_mask[..., first_keyframe_index+20:] = True   # From keyframe+20 to end
         else:
-            obs_mask[...,:67, frame_idx] = True
+            obs_mask[...,:193,:, frame_idx] = True # All features except velocities and foot contact
     obs_joint_mask = obs_mask.clone()
    
     input_motions = input_motions.to(dist_util.dev()) # [nsamples, njoints=263, nfeats=1, nframes=196]
@@ -238,3 +239,8 @@ def load_dataset(args, max_frames, split='test'):
     )
     data = get_dataset_loader(conf)
     return data
+
+
+def test()    :
+    motion_data = np.load("/Users/ericnazarenus/Desktop/dragbased/backend/diffusion_motion_inbetweening/dataset/HumanML3D/new_joint_vecs_abs_3d/000004.npy")
+    print(f"Motion data shape: {motion_data.shape}")

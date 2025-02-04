@@ -1,3 +1,1 @@
-This is just for git.
-
-- Daniel
+place SMPL_FEMALE.pkl here
