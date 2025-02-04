@@ -208,7 +208,6 @@ function Timeline({
                         </select>
                     </div>
                 </div>
-                <NumberInput value={numDiffusionSteps} onChangeFunction={setNumDiffusionSteps}></NumberInput>
                 <button onClick={() => {
                     setSequencePositions(null);
                     setKeyframes([]);

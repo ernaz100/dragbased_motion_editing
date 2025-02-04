@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 from .tensors import collate as all_collate, t2m_collate, amass_collate
-from backend.diffusion_motion_inbetweening.data_loaders.humanml.data.dataset import Text2MotionDatasetV2, HumanML3D, TextOnlyDataset
+from diffusion_motion_inbetweening.data_loaders.humanml.data.dataset import Text2MotionDatasetV2, HumanML3D, TextOnlyDataset
 from typing import Tuple, List, Optional
 from dataclasses import dataclass
 

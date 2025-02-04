@@ -69,7 +69,6 @@ def load_and_transform_motion(motion, mean, std):
 def generate_inbetween_motion(motion, keyframeIndices,first_keyframe_index = None, motion_editing = False, number_diffusion_steps = 10):
     out_path = "./keyframe_gen"
     max_frames = 196
-    args.diffusion_steps = num_diffusion_steps  # df: This does not seem to be enough. @Eric, can you insert it into your pipeline properly
     use_test_set_prompts = False
     texts = ['']
     print('Loading dataset...')
