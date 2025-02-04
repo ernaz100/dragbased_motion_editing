@@ -281,14 +281,14 @@ class Text2MotionDatasetV2(data.Dataset):
         for name in tqdm(id_list):
             try:
                 # if True:
-                motion_file_path = os.path.join(script_dir, "..", "..", "..", "dataset", "HumanML3D", "new_joint_vecs_abs_3d.npy")
+                motion_file_path = pjoin(script_dir, "..", "..", "..", "dataset", "HumanML3D", "new_joint_vecs_abs_3d", name + '.npy')
 
                 motion = np.load(motion_file_path)
                 if (len(motion)) < min_motion_len or (len(motion) >= 200):
                     continue
                 text_data = []
                 flag = False
-                text_file_path = os.path.join(script_dir, "..", "..", "..", "dataset", "HumanML3D", "texts.txt")
+                text_file_path = pjoin(script_dir, "..", "..", "..", "dataset", "HumanML3D", "texts", name + '.txt')
                 with cs.open(text_file_path) as f:
                     for line in f.readlines():
                         text_dict = {}
