@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/dragbased_motion_editing/static/css/main.51dd22a8.css",
-    "main.js": "/dragbased_motion_editing/static/js/main.cb743b7c.js",
+    "main.css": "/dragbased_motion_editing/static/css/main.8733e0af.css",
+    "main.js": "/dragbased_motion_editing/static/js/main.85bebe0e.js",
     "index.html": "/dragbased_motion_editing/index.html",
-    "main.51dd22a8.css.map": "/dragbased_motion_editing/static/css/main.51dd22a8.css.map",
-    "main.cb743b7c.js.map": "/dragbased_motion_editing/static/js/main.cb743b7c.js.map"
+    "main.8733e0af.css.map": "/dragbased_motion_editing/static/css/main.8733e0af.css.map",
+    "main.85bebe0e.js.map": "/dragbased_motion_editing/static/js/main.85bebe0e.js.map"
   },
   "entrypoints": [
-    "static/css/main.51dd22a8.css",
-    "static/js/main.cb743b7c.js"
+    "static/css/main.8733e0af.css",
+    "static/js/main.85bebe0e.js"
   ]
 }
