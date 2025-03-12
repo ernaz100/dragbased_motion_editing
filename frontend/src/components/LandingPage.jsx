@@ -1,7 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './LandingPage.css';
+import InfoPopup from './InfoPopup';
 
-function LandingPage({ onModeSelect }) {
+function LandingPage({ onModeSelect, showInfoPopup = true }) {
+    const [infoPopupVisible, setInfoPopupVisible] = useState(showInfoPopup);
+    const [stars, setStars] = useState([]);
+
     useEffect(() => {
         const elements = document.querySelectorAll('h1, h2');
         let isDragging = false;
@@ -79,7 +83,7 @@ function LandingPage({ onModeSelect }) {
     return (
         <div className="landing-page">
             <h1 className='title'>Exploring Motion Editing Methods with Drag-Based Signals</h1>
-            {<h2>A Virtual Humans project by Eric Nazarenus, Patricia Schlegel and Daniel Flat</h2>
+            {<h2>A Virtual Humans project by Eric Nazarenus</h2>
             }            <div className="button-container">
                 <button
                     className="mode-button"
@@ -93,6 +97,7 @@ function LandingPage({ onModeSelect }) {
                 >
                     Motion Editing
                 </button>
+                {infoPopupVisible && <InfoPopup onClose={() => setInfoPopupVisible(false)} />}
             </div>
         </div>
     );

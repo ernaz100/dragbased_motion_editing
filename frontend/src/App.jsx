@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import EditingViewer from './components/EditingViewer';
 import SynthesisViewer from './components/SynthesisViewer';
 import Timeline from './components/Timeline';
@@ -8,6 +8,8 @@ import './App.css';
 function App() {
     // Add mode state
     const [mode, setMode] = useState(null);
+    // Track if this is the initial page load
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     // Current animation time in seconds
     const [currentTime, setCurrentTime] = useState(0);
@@ -33,6 +35,13 @@ function App() {
     // Add currentFrame state at App level
     const [currentFrame, setCurrentFrame] = useState(0);
 
+    // Set isInitialLoad to false when mode changes from null
+    useEffect(() => {
+        if (mode !== null) {
+            setIsInitialLoad(false);
+        }
+    }, [mode]);
+
     const handleUpdatePose = () => {
         if (updatePoseRef.current) {
             updatePoseRef.current();
@@ -47,7 +56,7 @@ function App() {
 
     // If no mode is selected, show landing page
     if (!mode) {
-        return <LandingPage onModeSelect={setMode} />;
+        return <LandingPage onModeSelect={setMode} showInfoPopup={isInitialLoad} />;
     }
 
     return (
